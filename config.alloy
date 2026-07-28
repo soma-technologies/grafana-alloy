@@ -27,7 +27,24 @@ otelcol.processor.attributes "dependency_peer" {
     }
 
     action {
+        key     = "http.url"
+        pattern = `^(?P<sanitized_http_url>[^?#]+)`
+        action  = "extract"
+    }
+
+    action {
+        key            = "http.url"
+        from_attribute = "sanitized_http_url"
+        action          = "update"
+    }
+
+    action {
         key    = "dependency_host"
+        action = "delete"
+    }
+
+    action {
+        key    = "sanitized_http_url"
         action = "delete"
     }
 
@@ -35,8 +52,22 @@ otelcol.processor.attributes "dependency_peer" {
         traces = [
             otelcol.processor.batch.default.input,
             otelcol.connector.servicegraph.default.input,
-            otelcol.connector.spanmetrics.default.input,
+            otelcol.processor.filter.spanmetrics_noise.input,
         ]
+    }
+}
+
+otelcol.processor.filter "spanmetrics_noise" {
+    error_mode = "ignore"
+
+    traces {
+        span = [
+            `kind == SPAN_KIND_INTERNAL and IsMatch(name, " http (send|receive)$")`,
+        ]
+    }
+
+    output {
+        traces = [otelcol.connector.spanmetrics.default.input]
     }
 }
 
@@ -57,12 +88,34 @@ otelcol.connector.servicegraph "default" {
 }
 
 otelcol.connector.spanmetrics "default" {
-    namespace = "traces.spanmetrics"
+    namespace                     = "traces.spanmetrics"
+    aggregation_cardinality_limit = 5000
+    metrics_expiration             = "30m"
+    resource_metrics_key_attributes = [
+        "service.name",
+        "deployment.environment",
+        "service.version",
+    ]
 
     histogram {
         explicit {}
     }
 
+    output {
+        metrics = [otelcol.processor.batch.default.input]
+    }
+}
+
+prometheus.exporter.self "alloy" {}
+
+prometheus.scrape "alloy_self" {
+    targets         = prometheus.exporter.self.alloy.targets
+    forward_to      = [otelcol.receiver.prometheus.alloy_self.receiver]
+    job_name        = "soma-grafana-alloy"
+    scrape_interval = "30s"
+}
+
+otelcol.receiver.prometheus "alloy_self" {
     output {
         metrics = [otelcol.processor.batch.default.input]
     }
