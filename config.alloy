@@ -9,7 +9,39 @@ otelcol.receiver.otlp "default" {
     output {
         metrics = [otelcol.processor.batch.default.input]
         logs    = [otelcol.processor.batch.default.input]
-        traces  = [otelcol.processor.batch.default.input]
+        traces  = [
+            otelcol.processor.batch.default.input,
+            otelcol.connector.servicegraph.default.input,
+            otelcol.connector.spanmetrics.default.input,
+        ]
+    }
+}
+
+otelcol.connector.servicegraph "default" {
+    virtual_node_peer_attributes = [
+        "peer.service",
+        "server.address",
+        "network.peer.address",
+        "net.peer.name",
+        "db.namespace",
+        "db.name",
+        "db.system",
+    ]
+
+    output {
+        metrics = [otelcol.processor.batch.default.input]
+    }
+}
+
+otelcol.connector.spanmetrics "default" {
+    namespace = "traces.spanmetrics"
+
+    histogram {
+        explicit {}
+    }
+
+    output {
+        metrics = [otelcol.processor.batch.default.input]
     }
 }
 
@@ -25,7 +57,7 @@ otelcol.exporter.otlphttp "grafana_cloud" {
     client {
         endpoint = "https://otlp-gateway-prod-us-west-0.grafana.net/otlp"
         headers = {
-            "Authorization" = env("GC_OTLP_AUTH"),
+            "Authorization" = sys.env("GC_OTLP_AUTH"),
         }
     }
 }
