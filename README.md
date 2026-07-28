@@ -2,6 +2,9 @@
 
 OpenTelemetry collector using Grafana Alloy to receive OTLP data from Soma services and forward to Grafana Cloud.
 
+The active stabilization baseline and consulting backlog live in
+[`OBSERVABILITY_ROADMAP.md`](OBSERVABILITY_ROADMAP.md).
+
 ## Configuration
 
 - `Dockerfile`: Extends `grafana/alloy:latest` with custom config.
