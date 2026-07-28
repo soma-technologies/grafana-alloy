@@ -9,7 +9,30 @@ otelcol.receiver.otlp "default" {
     output {
         metrics = [otelcol.processor.batch.default.input]
         logs    = [otelcol.processor.batch.default.input]
-        traces  = [
+        traces  = [otelcol.processor.attributes.dependency_peer.input]
+    }
+}
+
+otelcol.processor.attributes "dependency_peer" {
+    action {
+        key     = "http.url"
+        pattern = `^https?://(?P<dependency_host>[^/:?#]+)`
+        action  = "extract"
+    }
+
+    action {
+        key            = "peer.service"
+        from_attribute = "dependency_host"
+        action          = "upsert"
+    }
+
+    action {
+        key    = "dependency_host"
+        action = "delete"
+    }
+
+    output {
+        traces = [
             otelcol.processor.batch.default.input,
             otelcol.connector.servicegraph.default.input,
             otelcol.connector.spanmetrics.default.input,
