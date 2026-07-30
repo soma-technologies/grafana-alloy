@@ -76,12 +76,12 @@ def panel(kind, title, x, y, width, height, targets=None, *, datasource=PROM, de
     }
 
 
-def stat(title, x, expr, description, *, unit="short", decimals=1, thresholds=None):
+def stat(title, x, expr, description, *, y=0, unit="short", decimals=1, thresholds=None):
     result = panel(
         "stat",
         title,
         x,
-        0,
+        y,
         6,
         5,
         [target(expr, instant=True)],
@@ -534,7 +534,7 @@ shedding = [
     timeseries(
         "Admission decisions",
         0,
-        5,
+        10,
         'sum by (decision) (rate(soma_storage_admissions_total{workflow=~"$workflow"}'
         "[$__rate_interval]))",
         "{{decision}}",
@@ -547,7 +547,7 @@ shedding = [
     timeseries(
         "Breaker open periods",
         12,
-        5,
+        10,
         'sum(soma_storage_breaker_open{workflow=~"$workflow"})',
         "breaker open",
         "Periods when uploads were shed process-wide. Read the failure panels against this: "
@@ -555,10 +555,77 @@ shedding = [
         "short",
         draw_style="bars",
     ),
+    stat(
+        "Transcript reads OK / min",
+        0,
+        'sum(rate(soma_poll_reads_total{outcome="ok"}[5m])) * 60',
+        "Successful reads from the transcript source. This is the baseline the refusal count "
+        "is meaningless without: zero refusals with zero reads is a stopped system, not a "
+        "healthy one.",
+        y=5,
+        unit="opm",
+        thresholds=NEUTRAL,
+    ),
+    stat(
+        "Transcript reads refused / min",
+        6,
+        'sum(rate(soma_poll_reads_total{outcome=~"terminal|exhausted"}[5m])) * 60',
+        "Reads the pacer gave up on. terminal is a 401 or 403 from the source; exhausted is "
+        "a run of failures. A refused read issues no HTTP request, so outbound volume falls "
+        "when this rises.",
+        y=5,
+        unit="opm",
+        thresholds=COUNT_STEPS,
+    ),
+    stat(
+        "Uploads completed / min",
+        12,
+        'sum(rate(soma_storage_operations_total{operation="upload",outcome="success"}[5m]))'
+        " * 60",
+        "Transcripts that actually reached storage. Distinct from the allowed rate above: an "
+        "admitted upload can still fail at the provider.",
+        y=5,
+        unit="opm",
+        thresholds=NEUTRAL,
+    ),
+    stat(
+        "Decisions / min",
+        18,
+        "sum(rate(soma_storage_admissions_total[5m])) * 60",
+        "Every admission decision, allowed or refused. If this reaches zero no archival is "
+        "being attempted at all, which every other panel on this tab renders as calm.",
+        y=5,
+        unit="opm",
+        thresholds=NEUTRAL,
+    ),
+    timeseries(
+        "Transcript read outcomes",
+        0,
+        18,
+        "sum by (outcome) (rate(soma_poll_reads_total[$__rate_interval])) * 60",
+        "{{outcome}}",
+        "Reads against the transcript source by result. failed backs off and retries; "
+        "terminal and exhausted stop that session's polling entirely. The MacBook sits "
+        "behind the same edge as storage, so a block here is reachable too.",
+        "short",
+        draw_style="bars",
+        stack=True,
+    ),
+    timeseries(
+        "Backoff before the next read",
+        12,
+        18,
+        "histogram_quantile(0.95, sum by (le) "
+        "(rate(soma_poll_wait_bucket[$__rate_interval])))",
+        "p95 wait",
+        "P95 delay the pacer chose. Sitting at the configured interval means healthy "
+        "polling; climbing means reads are failing and backing off.",
+        "s",
+    ),
     timeseries(
         "Edge block reason codes",
         0,
-        13,
+        26,
         "sum by (upstream_body_marker, upstream_status) "
         '(count_over_time({service_name=~"soma-.+"} | json '
         '| event="storage_operation_failed" '

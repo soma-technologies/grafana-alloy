@@ -60,7 +60,7 @@
     },
     {
       "uid": "soma-angie-claude-pool",
-      "title": "SOMA Angie — Claude Pool Status",
+      "title": "SOMA Angie \u2014 Claude Pool Status",
       "status": "managed",
       "generator": "gen_soma_angie_claude_pool_dashboard.py",
       "audience": "engineers",
@@ -72,6 +72,19 @@
         "engineering",
         "observability",
         "pool",
+        "soma"
+      ]
+    },
+    {
+      "uid": "soma-angie-queue-health",
+      "title": "SOMA Angie \u2014 Queue Health",
+      "status": "keep",
+      "audience": "operators",
+      "note": "Queue depth, oldest wait, arrival and drain rates, and the drain plan needed to clear a backlog. Built in the UI and deliberately not generated here.",
+      "folder": "SOMA Engineering",
+      "tags": [
+        "angie",
+        "queue",
         "soma"
       ]
     },
