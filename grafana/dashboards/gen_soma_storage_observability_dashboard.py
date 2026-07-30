@@ -27,6 +27,12 @@ COUNT_STEPS = [
     {"color": "orange", "value": 1},
     {"color": "red", "value": 10},
 ]
+SUCCESS_STEPS = [
+    {"color": "text"},
+    {"color": "red", "value": 0},
+    {"color": "orange", "value": 90},
+    {"color": "green", "value": 99},
+]
 
 SELECTOR = 'workflow=~"$workflow",logical_area=~"$logical_area"'
 
@@ -92,6 +98,34 @@ def stat(title, x, expr, description, *, unit="short", decimals=1, thresholds=No
         "decimals": decimals,
         "noValue": UNKNOWN,
         "thresholds": {"mode": "absolute", "steps": thresholds or NEUTRAL},
+    }
+    return result
+
+
+def gauge(title, x, expr, description, *, thresholds):
+    result = panel(
+        "gauge",
+        title,
+        x,
+        5,
+        12,
+        8,
+        [target(expr, instant=True)],
+        description=description,
+    )
+    result["options"] = {
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": False},
+        "showThresholdLabels": False,
+        "showThresholdMarkers": True,
+    }
+    result["fieldConfig"]["defaults"] = {
+        "unit": "percent",
+        "decimals": 1,
+        "min": 0,
+        "max": 100,
+        "noValue": UNKNOWN,
+        "thresholds": {"mode": "absolute", "steps": thresholds},
     }
     return result
 
@@ -264,9 +298,29 @@ health = [
         unit="ms",
         decimals=0,
     ),
+    gauge(
+        "Successful provider attempts",
+        0,
+        "100 * sum(rate(soma_storage_operations_total{"
+        f'{SELECTOR},outcome="success"}}[5m])) '
+        f"/ clamp_min(sum(rate(soma_storage_operations_total{{{SELECTOR}}}[5m])), 1e-9)",
+        "Successful provider attempts as a share of all attempts over five minutes. Retries "
+        "count as additional attempts; this does not prove unique workflows completed.",
+        thresholds=SUCCESS_STEPS,
+    ),
+    gauge(
+        "Failed provider attempts",
+        12,
+        "100 * sum(rate(soma_storage_operations_total{"
+        f'{SELECTOR},outcome="error"}}[5m])) '
+        f"/ clamp_min(sum(rate(soma_storage_operations_total{{{SELECTOR}}}[5m])), 1e-9)",
+        "Failed provider attempts as a share of all attempts over five minutes. Repeated "
+        "retries of one object are counted separately.",
+        thresholds=ERROR_STEPS,
+    ),
     text_panel(
         "How to read storage health",
-        5,
+        13,
         "**These are provider-attempt diagnostics, not business outcomes.** A retry is another "
         "provider attempt, so a single session can produce many failures. Use the failure logs "
         "and traces to identify the upstream response, then use workflow-level telemetry to "

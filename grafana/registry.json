@@ -43,6 +43,39 @@
       ]
     },
     {
+      "uid": "soma-angie-observability",
+      "title": "SOMA Angie Observability",
+      "status": "managed",
+      "generator": "gen_soma_angie_observability_dashboard.py",
+      "audience": "engineers",
+      "note": "Terminal callback health, session and callback processing, Angie transcript storage, summary lookup work, safe failure logs, and traces. Provider-attempt ratios are diagnostic, not business SLIs.",
+      "folder": "SOMA Engineering",
+      "tags": [
+        "angie",
+        "engineering",
+        "observability",
+        "soma",
+        "storage"
+      ]
+    },
+    {
+      "uid": "soma-angie-claude-pool",
+      "title": "SOMA Angie — Claude Pool Status",
+      "status": "managed",
+      "generator": "gen_soma_angie_claude_pool_dashboard.py",
+      "audience": "engineers",
+      "note": "Per-account Claude 5-hour and 7-day usage/reset windows, scheduling eligibility, active/max capacity, cooldowns, sessions, API status, worker heartbeats, and runtime failures.",
+      "folder": "SOMA Engineering",
+      "tags": [
+        "angie",
+        "claude",
+        "engineering",
+        "observability",
+        "pool",
+        "soma"
+      ]
+    },
+    {
       "uid": "soma-operations",
       "title": "SOMA Operations",
       "status": "managed",

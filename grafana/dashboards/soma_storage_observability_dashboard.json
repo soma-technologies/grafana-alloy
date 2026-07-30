@@ -356,13 +356,191 @@
           "data": {
             "kind": "QueryGroup",
             "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "100 * sum(rate(soma_storage_operations_total{workflow=~\"$workflow\",logical_area=~\"$logical_area\",outcome=\"success\"}[5m])) / clamp_min(sum(rate(soma_storage_operations_total{workflow=~\"$workflow\",logical_area=~\"$logical_area\"}[5m])), 1e-9)",
+                        "instant": true,
+                        "format": "table",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Successful provider attempts as a share of all attempts over five minutes. Retries count as additional attempts; this does not prove unique workflows completed.",
+          "id": 5,
+          "links": [],
+          "title": "Successful provider attempts",
+          "vizConfig": {
+            "group": "gauge",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "percent",
+                  "decimals": 1,
+                  "min": 0,
+                  "max": 100,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      },
+                      {
+                        "color": "red",
+                        "value": 0
+                      },
+                      {
+                        "color": "orange",
+                        "value": 90
+                      },
+                      {
+                        "color": "green",
+                        "value": 99
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showThresholdLabels": false,
+                "showThresholdMarkers": true
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-6": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "100 * sum(rate(soma_storage_operations_total{workflow=~\"$workflow\",logical_area=~\"$logical_area\",outcome=\"error\"}[5m])) / clamp_min(sum(rate(soma_storage_operations_total{workflow=~\"$workflow\",logical_area=~\"$logical_area\"}[5m])), 1e-9)",
+                        "instant": true,
+                        "format": "table",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Failed provider attempts as a share of all attempts over five minutes. Repeated retries of one object are counted separately.",
+          "id": 6,
+          "links": [],
+          "title": "Failed provider attempts",
+          "vizConfig": {
+            "group": "gauge",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "percent",
+                  "decimals": 1,
+                  "min": 0,
+                  "max": 100,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      },
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "orange",
+                        "value": 1
+                      },
+                      {
+                        "color": "red",
+                        "value": 5
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showThresholdLabels": false,
+                "showThresholdMarkers": true
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-7": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
               "queries": [],
               "queryOptions": {},
               "transformations": []
             }
           },
           "description": "",
-          "id": 5,
+          "id": 7,
           "links": [],
           "title": "How to read storage health",
           "vizConfig": {
@@ -382,7 +560,7 @@
           }
         }
       },
-      "panel-6": {
+      "panel-8": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -417,7 +595,7 @@
             }
           },
           "description": "Provider attempts per second split by workflow, operation, and outcome.",
-          "id": 6,
+          "id": 8,
           "links": [],
           "title": "Storage provider attempt rate",
           "vizConfig": {
@@ -465,7 +643,7 @@
           }
         }
       },
-      "panel-7": {
+      "panel-9": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -500,7 +678,7 @@
             }
           },
           "description": "Failed provider attempts as a percentage of attempts, split by workflow. Retries count again and can dominate this ratio.",
-          "id": 7,
+          "id": 9,
           "links": [],
           "title": "Provider attempt error ratio by workflow",
           "vizConfig": {
@@ -570,7 +748,7 @@
           }
         }
       },
-      "panel-8": {
+      "panel-10": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -605,7 +783,7 @@
             }
           },
           "description": "P95 provider-attempt latency by workflow and operation. Failure and success attempts are combined.",
-          "id": 8,
+          "id": 10,
           "links": [],
           "title": "P95 latency by operation",
           "vizConfig": {
@@ -653,7 +831,7 @@
           }
         }
       },
-      "panel-9": {
+      "panel-11": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -688,7 +866,7 @@
             }
           },
           "description": "Application payload bytes supplied to provider calls per second. Error series are attempted bytes, not confirmed storage.",
-          "id": 9,
+          "id": 11,
           "links": [],
           "title": "Attempted payload throughput",
           "vizConfig": {
@@ -736,7 +914,7 @@
           }
         }
       },
-      "panel-10": {
+      "panel-12": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -770,7 +948,7 @@
             }
           },
           "description": "Payload-blind provider failures with safe upstream diagnostics. Expand a line and follow its trace ID when one is present.",
-          "id": 10,
+          "id": 12,
           "links": [],
           "title": "Storage failure logs",
           "vizConfig": {
@@ -797,7 +975,7 @@
           }
         }
       },
-      "panel-11": {
+      "panel-13": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -831,7 +1009,7 @@
             }
           },
           "description": "Failed storage client spans. Open a row to inspect the complete request trace and surrounding workflow.",
-          "id": 11,
+          "id": 13,
           "links": [],
           "title": "Failed storage traces",
           "vizConfig": {
@@ -851,7 +1029,7 @@
           }
         }
       },
-      "panel-12": {
+      "panel-14": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -885,7 +1063,7 @@
             }
           },
           "description": "Failure events in each rolling five-minute window by upstream status and runtime. A missing series means no matching failure logs.",
-          "id": 12,
+          "id": 14,
           "links": [],
           "title": "5m failures by upstream status and service",
           "vizConfig": {
@@ -933,7 +1111,7 @@
           }
         }
       },
-      "panel-13": {
+      "panel-15": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -968,7 +1146,7 @@
             }
           },
           "description": "Retry, fallback, and conflict events emitted by the storage boundary.",
-          "id": 13,
+          "id": 15,
           "links": [],
           "title": "Retries, fallbacks and conflicts",
           "vizConfig": {
@@ -1088,10 +1266,36 @@
                           "kind": "ElementReference",
                           "name": "panel-5"
                         },
+                        "height": 8,
+                        "width": 12,
+                        "x": 0,
+                        "y": 5
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-6"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 12,
+                        "y": 5
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-7"
+                        },
                         "height": 7,
                         "width": 24,
                         "x": 0,
-                        "y": 5
+                        "y": 13
                       }
                     }
                   ]
@@ -1112,7 +1316,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-6"
+                          "name": "panel-8"
                         },
                         "height": 8,
                         "width": 12,
@@ -1125,7 +1329,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-7"
+                          "name": "panel-9"
                         },
                         "height": 8,
                         "width": 12,
@@ -1138,7 +1342,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-8"
+                          "name": "panel-10"
                         },
                         "height": 8,
                         "width": 12,
@@ -1151,7 +1355,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-9"
+                          "name": "panel-11"
                         },
                         "height": 8,
                         "width": 12,
@@ -1177,7 +1381,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-10"
+                          "name": "panel-12"
                         },
                         "height": 10,
                         "width": 12,
@@ -1190,7 +1394,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-11"
+                          "name": "panel-13"
                         },
                         "height": 10,
                         "width": 12,
@@ -1203,7 +1407,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-12"
+                          "name": "panel-14"
                         },
                         "height": 8,
                         "width": 12,
@@ -1216,7 +1420,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-13"
+                          "name": "panel-15"
                         },
                         "height": 8,
                         "width": 12,
