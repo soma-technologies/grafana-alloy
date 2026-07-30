@@ -488,10 +488,97 @@ def grid_items(group):
     ]
 
 
+
+shedding = [
+    stat(
+        "Archive breaker",
+        0,
+        'sum(soma_storage_breaker_open{workflow=~"$workflow"})',
+        "1 while the session-archive circuit breaker is open and uploads are being shed. "
+        "While open, upload attempts never reach the provider, so the failure panels go quiet "
+        "for a reason that is not recovery.",
+        unit="short",
+        decimals=0,
+        thresholds=ERROR_STEPS,
+    ),
+    stat(
+        "Uploads shed / min",
+        6,
+        'sum(rate(soma_storage_admissions_total{workflow=~"$workflow",'
+        'decision=~"defer|abandon"}[5m])) * 60',
+        "Upload attempts refused inside the process per minute. These produce no provider call "
+        "and therefore no success or error sample.",
+        unit="opm",
+        thresholds=COUNT_STEPS,
+    ),
+    stat(
+        "Uploads allowed / min",
+        12,
+        'sum(rate(soma_storage_admissions_total{workflow=~"$workflow",'
+        'decision="allow"}[5m])) * 60',
+        "Upload attempts admitted to the provider per minute. Compare with the error rate: a "
+        "falling error rate with a falling allow rate is shedding, not recovery.",
+        unit="opm",
+        thresholds=COUNT_STEPS,
+    ),
+    stat(
+        "Duplicates skipped / min",
+        18,
+        'sum(rate(soma_storage_admissions_total{workflow=~"$workflow",'
+        'decision="duplicate"}[5m])) * 60',
+        "Snapshots whose content and completion flags matched the last stored copy, so no "
+        "upload was needed.",
+        unit="opm",
+        thresholds=COUNT_STEPS,
+    ),
+    timeseries(
+        "Admission decisions",
+        0,
+        5,
+        'sum by (decision) (rate(soma_storage_admissions_total{workflow=~"$workflow"}'
+        "[$__rate_interval]))",
+        "{{decision}}",
+        "Every upload decision, including the ones that never leave the process. This is the "
+        "only place a shed attempt is visible; storage_operations counts provider calls only.",
+        "ops",
+        draw_style="bars",
+        stack=True,
+    ),
+    timeseries(
+        "Breaker open periods",
+        12,
+        5,
+        'sum(soma_storage_breaker_open{workflow=~"$workflow"})',
+        "breaker open",
+        "Periods when uploads were shed process-wide. Read the failure panels against this: "
+        "quiet failures inside an open window mean nothing was attempted.",
+        "short",
+        draw_style="bars",
+    ),
+    timeseries(
+        "Edge block reason codes",
+        0,
+        13,
+        "sum by (upstream_body_marker, upstream_status) "
+        '(count_over_time({service_name=~"soma-.+"} | json '
+        '| event="storage_operation_failed" '
+        '| upstream_body_marker != "" [5m]))',
+        "{{upstream_body_marker}} · {{upstream_status}}",
+        "The edge's own reason code parsed from non-JSON error bodies. cloudflare_1015 is rate "
+        "limiting, which expires on a timer; cloudflare_1020 is a firewall rule, which does not. "
+        "A missing series means no edge block pages were returned.",
+        "short",
+        datasource=LOKI,
+        draw_style="bars",
+        stack=True,
+    ),
+]
+
 tabs_spec = [
     ("Health", health),
     ("Traffic & latency", traffic),
     ("Failures & traces", failures),
+    ("Load shedding", shedding),
 ]
 
 all_panels = [item for _, group in tabs_spec for item in group]
