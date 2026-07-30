@@ -1,0 +1,1328 @@
+{
+  "apiVersion": "dashboard.grafana.app/v2",
+  "kind": "Dashboard",
+  "metadata": {
+    "annotations": {
+      "grafana.app/folder": "eftnndsaxtvy8a",
+      "grafana.app/message": "Manage SOMA storage observability dashboard as code"
+    },
+    "name": "soma-storage-observability"
+  },
+  "spec": {
+    "annotations": [],
+    "cursorSync": "Off",
+    "description": "Production health, traffic, latency, retries, safe failure logs, and traces for Soma's Supabase Storage boundaries.",
+    "editable": true,
+    "elements": {
+      "panel-1": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "100 * sum(rate(soma_storage_errors_total{workflow=~\"$workflow\",logical_area=~\"$logical_area\"}[5m])) / clamp_min(sum(rate(soma_storage_operations_total{workflow=~\"$workflow\",logical_area=~\"$logical_area\"}[5m])), 1e-9)",
+                        "instant": true,
+                        "format": "table",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Failed provider attempts as a share of all observed provider attempts over 5 minutes. Retries count again; this is not a unique-session or business-failure rate.",
+          "id": 1,
+          "links": [],
+          "title": "Provider attempt error ratio",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "percent",
+                  "decimals": 1,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      },
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "orange",
+                        "value": 1
+                      },
+                      {
+                        "color": "red",
+                        "value": 5
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "area"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-2": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(rate(soma_storage_errors_total{workflow=~\"$workflow\",logical_area=~\"$logical_area\"}[5m])) * 60",
+                        "instant": true,
+                        "format": "table",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Failed storage provider attempts per minute. Repeated retries of one object are counted separately.",
+          "id": 2,
+          "links": [],
+          "title": "Failed provider calls / min",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "opm",
+                  "decimals": 1,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      },
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "orange",
+                        "value": 1
+                      },
+                      {
+                        "color": "red",
+                        "value": 10
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "area"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-3": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(rate(soma_storage_events_total{event=\"retry\",workflow=~\"$workflow\",logical_area=~\"$logical_area\"}[5m])) * 60",
+                        "instant": true,
+                        "format": "table",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Storage retry events per minute. Compare with failed calls to see retry amplification.",
+          "id": 3,
+          "links": [],
+          "title": "Retries / min",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "opm",
+                  "decimals": 1,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      },
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "orange",
+                        "value": 1
+                      },
+                      {
+                        "color": "red",
+                        "value": 10
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "area"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-4": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "histogram_quantile(0.95, sum by (le) (rate(soma_storage_duration_milliseconds_bucket{workflow=~\"$workflow\",logical_area=~\"$logical_area\"}[5m])))",
+                        "instant": true,
+                        "format": "table",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "P95 duration of provider attempts. Fast failures can lower this value, so it is not a success-latency SLI.",
+          "id": 4,
+          "links": [],
+          "title": "P95 provider-call latency",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "ms",
+                  "decimals": 0,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "area"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-5": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 5,
+          "links": [],
+          "title": "How to read storage health",
+          "vizConfig": {
+            "group": "text",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
+              "options": {
+                "mode": "markdown",
+                "content": "**These are provider-attempt diagnostics, not business outcomes.** A retry is another provider attempt, so a single session can produce many failures. Use the failure logs and traces to identify the upstream response, then use workflow-level telemetry to decide customer impact.\n\n`soma_storage_transfer_bytes_total` records bytes attempted by the application. Bytes on an error series were not confirmed stored. Missing telemetry renders as **Unknown**, never as a healthy zero."
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-6": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "queryType": "range",
+                        "editorMode": "code",
+                        "expr": "sum by (workflow, operation, outcome) (rate(soma_storage_operations_total{workflow=~\"$workflow\",logical_area=~\"$logical_area\"}[$__rate_interval]))",
+                        "range": true,
+                        "legendFormat": "{{workflow}} \u00b7 {{operation}} \u00b7 {{outcome}}"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Provider attempts per second split by workflow, operation, and outcome.",
+          "id": 6,
+          "links": [],
+          "title": "Storage provider attempt rate",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "ops",
+                  "noValue": "Unknown \u2014 not measured",
+                  "custom": {
+                    "drawStyle": "line",
+                    "fillOpacity": 12,
+                    "lineWidth": 2,
+                    "showPoints": "never",
+                    "spanNulls": true,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "normal"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "calcs": [
+                    "lastNotNull",
+                    "max"
+                  ],
+                  "displayMode": "table",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-7": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "queryType": "range",
+                        "editorMode": "code",
+                        "expr": "100 * sum by (workflow) (rate(soma_storage_errors_total{workflow=~\"$workflow\",logical_area=~\"$logical_area\"}[$__rate_interval])) / clamp_min(sum by (workflow) (rate(soma_storage_operations_total{workflow=~\"$workflow\",logical_area=~\"$logical_area\"}[$__rate_interval])), 1e-9)",
+                        "range": true,
+                        "legendFormat": "{{workflow}}"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Failed provider attempts as a percentage of attempts, split by workflow. Retries count again and can dominate this ratio.",
+          "id": 7,
+          "links": [],
+          "title": "Provider attempt error ratio by workflow",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "percent",
+                  "noValue": "Unknown \u2014 not measured",
+                  "custom": {
+                    "drawStyle": "line",
+                    "fillOpacity": 12,
+                    "lineWidth": 2,
+                    "showPoints": "never",
+                    "spanNulls": true,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "line"
+                    }
+                  },
+                  "min": 0,
+                  "max": 100,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      },
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "orange",
+                        "value": 1
+                      },
+                      {
+                        "color": "red",
+                        "value": 5
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "calcs": [
+                    "lastNotNull",
+                    "max"
+                  ],
+                  "displayMode": "table",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-8": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "queryType": "range",
+                        "editorMode": "code",
+                        "expr": "histogram_quantile(0.95, sum by (le, workflow, operation) (rate(soma_storage_duration_milliseconds_bucket{workflow=~\"$workflow\",logical_area=~\"$logical_area\"}[$__rate_interval])))",
+                        "range": true,
+                        "legendFormat": "{{workflow}} \u00b7 {{operation}}"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "P95 provider-attempt latency by workflow and operation. Failure and success attempts are combined.",
+          "id": 8,
+          "links": [],
+          "title": "P95 latency by operation",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "ms",
+                  "noValue": "Unknown \u2014 not measured",
+                  "custom": {
+                    "drawStyle": "line",
+                    "fillOpacity": 12,
+                    "lineWidth": 2,
+                    "showPoints": "never",
+                    "spanNulls": true,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "calcs": [
+                    "lastNotNull",
+                    "max"
+                  ],
+                  "displayMode": "table",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-9": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "queryType": "range",
+                        "editorMode": "code",
+                        "expr": "sum by (workflow, operation, outcome) (rate(soma_storage_transfer_bytes_total{workflow=~\"$workflow\",logical_area=~\"$logical_area\"}[$__rate_interval]))",
+                        "range": true,
+                        "legendFormat": "{{workflow}} \u00b7 {{operation}} \u00b7 {{outcome}}"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Application payload bytes supplied to provider calls per second. Error series are attempted bytes, not confirmed storage.",
+          "id": 9,
+          "links": [],
+          "title": "Attempted payload throughput",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "Bps",
+                  "noValue": "Unknown \u2014 not measured",
+                  "custom": {
+                    "drawStyle": "line",
+                    "fillOpacity": 12,
+                    "lineWidth": 2,
+                    "showPoints": "never",
+                    "spanNulls": true,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "normal"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "calcs": [
+                    "lastNotNull",
+                    "max"
+                  ],
+                  "displayMode": "table",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-10": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-logs"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "direction": "backward",
+                        "queryType": "range",
+                        "editorMode": "code",
+                        "expr": "{service_name=~\"soma-.+\"} | json | event=\"storage_operation_failed\" | workflow=~\"$workflow\" | logical_area=~\"$logical_area\""
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Payload-blind provider failures with safe upstream diagnostics. Expand a line and follow its trace ID when one is present.",
+          "id": 10,
+          "links": [],
+          "title": "Storage failure logs",
+          "vizConfig": {
+            "group": "logs",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
+              "options": {
+                "dedupStrategy": "none",
+                "enableInfiniteScrolling": false,
+                "enableLogDetails": true,
+                "prettifyLogMessage": false,
+                "showCommonLabels": false,
+                "showLabels": false,
+                "showTime": true,
+                "sortOrder": "Descending",
+                "wrapLogMessage": true
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-11": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-traces"
+                      },
+                      "group": "tempo",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "limit": 50,
+                        "query": "{ name =~ \"storage\\\\..+\" && span.storage.provider = \"supabase\" && span.storage.workflow =~ \"$workflow\" && span.storage.logical_area =~ \"$logical_area\" && status = error }",
+                        "queryType": "traceql",
+                        "tableType": "traces"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Failed storage client spans. Open a row to inspect the complete request trace and surrounding workflow.",
+          "id": 11,
+          "links": [],
+          "title": "Failed storage traces",
+          "vizConfig": {
+            "group": "table",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
+              "options": {
+                "cellHeight": "sm",
+                "showHeader": true
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-12": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-logs"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "queryType": "range",
+                        "editorMode": "code",
+                        "expr": "sum by (upstream_status, service_name) (count_over_time({service_name=~\"soma-.+\"} | json | event=\"storage_operation_failed\" | workflow=~\"$workflow\" | logical_area=~\"$logical_area\" [5m]))",
+                        "legendFormat": "{{upstream_status}} \u00b7 {{service_name}}"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Failure events in each rolling five-minute window by upstream status and runtime. A missing series means no matching failure logs.",
+          "id": 12,
+          "links": [],
+          "title": "5m failures by upstream status and service",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short",
+                  "noValue": "Unknown \u2014 not measured",
+                  "custom": {
+                    "drawStyle": "bars",
+                    "fillOpacity": 45,
+                    "lineWidth": 2,
+                    "showPoints": "never",
+                    "spanNulls": true,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "normal"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "calcs": [
+                    "lastNotNull",
+                    "max"
+                  ],
+                  "displayMode": "table",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-13": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "queryType": "range",
+                        "editorMode": "code",
+                        "expr": "sum by (event, workflow, operation) (rate(soma_storage_events_total{workflow=~\"$workflow\",logical_area=~\"$logical_area\"}[$__rate_interval]))",
+                        "range": true,
+                        "legendFormat": "{{event}} \u00b7 {{workflow}} \u00b7 {{operation}}"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Retry, fallback, and conflict events emitted by the storage boundary.",
+          "id": 13,
+          "links": [],
+          "title": "Retries, fallbacks and conflicts",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "ops",
+                  "noValue": "Unknown \u2014 not measured",
+                  "custom": {
+                    "drawStyle": "line",
+                    "fillOpacity": 12,
+                    "lineWidth": 2,
+                    "showPoints": "never",
+                    "spanNulls": true,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "normal"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "calcs": [
+                    "lastNotNull",
+                    "max"
+                  ],
+                  "displayMode": "table",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      }
+    },
+    "layout": {
+      "kind": "TabsLayout",
+      "spec": {
+        "tabs": [
+          {
+            "kind": "TabsLayoutTab",
+            "spec": {
+              "title": "Health",
+              "layout": {
+                "kind": "GridLayout",
+                "spec": {
+                  "items": [
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-1"
+                        },
+                        "height": 5,
+                        "width": 6,
+                        "x": 0,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-2"
+                        },
+                        "height": 5,
+                        "width": 6,
+                        "x": 6,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-3"
+                        },
+                        "height": 5,
+                        "width": 6,
+                        "x": 12,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-4"
+                        },
+                        "height": 5,
+                        "width": 6,
+                        "x": 18,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-5"
+                        },
+                        "height": 7,
+                        "width": 24,
+                        "x": 0,
+                        "y": 5
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "kind": "TabsLayoutTab",
+            "spec": {
+              "title": "Traffic & latency",
+              "layout": {
+                "kind": "GridLayout",
+                "spec": {
+                  "items": [
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-6"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 0,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-7"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 12,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-8"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 0,
+                        "y": 8
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-9"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 12,
+                        "y": 8
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "kind": "TabsLayoutTab",
+            "spec": {
+              "title": "Failures & traces",
+              "layout": {
+                "kind": "GridLayout",
+                "spec": {
+                  "items": [
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-10"
+                        },
+                        "height": 10,
+                        "width": 12,
+                        "x": 0,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-11"
+                        },
+                        "height": 10,
+                        "width": 12,
+                        "x": 12,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-12"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 0,
+                        "y": 10
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-13"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 12,
+                        "y": 10
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "links": [
+      {
+        "title": "SOMA Engineering",
+        "type": "link",
+        "url": "/d/soma-engineering/soma-engineering",
+        "targetBlank": false,
+        "includeVars": false,
+        "keepTime": true,
+        "asDropdown": false,
+        "icon": "external link",
+        "tags": [],
+        "tooltip": "Open the main engineering dashboard"
+      },
+      {
+        "title": "Supabase infrastructure",
+        "type": "link",
+        "url": "/d/soma-supabase/soma-supabase",
+        "targetBlank": false,
+        "includeVars": false,
+        "keepTime": true,
+        "asDropdown": false,
+        "icon": "external link",
+        "tags": [],
+        "tooltip": "Open Supabase infrastructure health"
+      }
+    ],
+    "liveNow": false,
+    "preload": false,
+    "tags": [
+      "soma",
+      "engineering",
+      "storage",
+      "supabase",
+      "observability"
+    ],
+    "timeSettings": {
+      "autoRefresh": "1m",
+      "autoRefreshIntervals": [
+        "30s",
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h"
+      ],
+      "fiscalYearStartMonth": 0,
+      "from": "now-3h",
+      "hideTimepicker": false,
+      "timezone": "America/New_York",
+      "to": "now"
+    },
+    "title": "SOMA Storage Observability",
+    "variables": [
+      {
+        "kind": "CustomVariable",
+        "spec": {
+          "allValue": ".*",
+          "allowCustomValue": false,
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "hide": "dontHide",
+          "includeAll": true,
+          "label": "Workflow",
+          "multi": true,
+          "name": "workflow",
+          "options": [],
+          "query": "session_archive,object_store",
+          "skipUrlSync": false
+        }
+      },
+      {
+        "kind": "CustomVariable",
+        "spec": {
+          "allValue": ".*",
+          "allowCustomValue": false,
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "hide": "dontHide",
+          "includeAll": true,
+          "label": "Logical area",
+          "multi": true,
+          "name": "logical_area",
+          "options": [],
+          "query": "session_transcripts,generic_objects,lead_artifacts,persisted_reference",
+          "skipUrlSync": false
+        }
+      }
+    ]
+  }
+}

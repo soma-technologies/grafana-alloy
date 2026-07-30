@@ -1,0 +1,3473 @@
+{
+  "apiVersion": "dashboard.grafana.app/v2",
+  "kind": "Dashboard",
+  "metadata": {
+    "annotations": {
+      "grafana.app/folder": "eftnndsaxtvy8a",
+      "grafana.app/message": "Create SOMA engineering diagnostics dashboard"
+    },
+    "name": "soma-engineering"
+  },
+  "spec": {
+    "annotations": [],
+    "cursorSync": "Off",
+    "description": "Engineering diagnostics for SOMA: HTTP RED, routes, dependencies, workflow spans, and the health of the telemetry pipeline itself.",
+    "editable": true,
+    "elements": {
+      "panel-1": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(rate(http_server_duration_milliseconds_count[$__rate_interval]))",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Inbound HTTP requests per second across all SOMA services.",
+          "id": 1,
+          "links": [],
+          "title": "Request rate",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "reqps",
+                  "decimals": 2,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "none"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-2": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "100 * sum(rate(http_server_duration_milliseconds_count{http_status_code=~\"5..\"}[$__rate_interval])) / clamp_min(sum(rate(http_server_duration_milliseconds_count[$__rate_interval])), 0.0001) or sum(rate(http_server_duration_milliseconds_count[$__rate_interval])) * 0",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Share of inbound requests answered with a 5xx. This is SOMA's own failure to acknowledge, not a business outcome.",
+          "id": 2,
+          "links": [],
+          "title": "5xx rate",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "percent",
+                  "decimals": 2,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      },
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "orange",
+                        "value": 1
+                      },
+                      {
+                        "color": "red",
+                        "value": 5
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "none"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-3": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(http_server_active_requests)",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Requests currently being served. A rising floor means work is backing up.",
+          "id": 3,
+          "links": [],
+          "title": "In-flight requests",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short",
+                  "decimals": 0,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "none"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-4": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "count(count by (service_name) (http_server_duration_milliseconds_count))",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "How many services are emitting HTTP telemetry. Fewer than expected means the rest are unknown, not idle.",
+          "id": 4,
+          "links": [],
+          "title": "Services reporting",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short",
+                  "decimals": 0,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "none"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-5": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum by (service_name) (rate(http_server_duration_milliseconds_count[$__rate_interval]))",
+                        "range": true,
+                        "legendFormat": "{{service_name}}"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Inbound HTTP by service.",
+          "id": 5,
+          "links": [],
+          "title": "Request rate by service",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "reqps",
+                  "noValue": "Unknown \u2014 not measured",
+                  "custom": {
+                    "lineWidth": 2,
+                    "fillOpacity": 10,
+                    "gradientMode": "opacity",
+                    "showPoints": "never"
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-6": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "100 * sum by (service_name) (rate(http_server_duration_milliseconds_count{http_status_code=~\"5..\"}[$__rate_interval])) / clamp_min(sum by (service_name) (rate(http_server_duration_milliseconds_count[$__rate_interval])), 0.0001) or sum by (service_name) (rate(http_server_duration_milliseconds_count[$__rate_interval])) * 0",
+                        "range": true,
+                        "legendFormat": "{{service_name}}"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Per-service 5xx share. A service with no traffic shows no line rather than 0%.",
+          "id": 6,
+          "links": [],
+          "title": "5xx rate by service",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "percent",
+                  "noValue": "Unknown \u2014 not measured",
+                  "custom": {
+                    "lineWidth": 2,
+                    "fillOpacity": 10,
+                    "gradientMode": "opacity",
+                    "showPoints": "never"
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-7": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "histogram_quantile(0.5, sum by (le) (rate(http_server_duration_milliseconds_bucket[$__rate_interval])))",
+                        "range": true,
+                        "legendFormat": "p50"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_duration_milliseconds_bucket[$__rate_interval])))",
+                        "range": true,
+                        "legendFormat": "p95"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_duration_milliseconds_bucket[$__rate_interval])))",
+                        "range": true,
+                        "legendFormat": "p99"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "C",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Estimated from histogram buckets whose top edge is 10000 ms. A percentile sitting flat at 10000 ms means the bucket is saturated \u2014 the real value is somewhere above it and cannot be read from this panel. Use traces for those.",
+          "id": 7,
+          "links": [],
+          "title": "Inbound latency percentiles",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "ms",
+                  "noValue": "Unknown \u2014 not measured",
+                  "custom": {
+                    "lineWidth": 2,
+                    "fillOpacity": 10,
+                    "gradientMode": "opacity",
+                    "showPoints": "never"
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-8": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum by (http_target) (increase(http_server_duration_milliseconds_count[$__range]))",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "histogram_quantile(0.95, sum by (le, http_target) (rate(http_server_duration_milliseconds_bucket[$__rate_interval])))",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "100 * sum by (http_target) (increase(http_server_duration_milliseconds_count{http_status_code=~\"5..\"}[$__range])) / clamp_min(sum by (http_target) (increase(http_server_duration_milliseconds_count[$__range])), 1)",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "C",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": [
+                {
+                  "group": "joinByField",
+                  "kind": "Transformation",
+                  "spec": {
+                    "options": {
+                      "byField": "http_target",
+                      "mode": "outer"
+                    }
+                  }
+                },
+                {
+                  "group": "organize",
+                  "kind": "Transformation",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {
+                        "Time 1": true,
+                        "Time 2": true,
+                        "Time 3": true
+                      },
+                      "renameByName": {
+                        "http_target": "Route",
+                        "Value #A": "Requests",
+                        "Value #B": "p95",
+                        "Value #C": "5xx %"
+                      }
+                    }
+                  }
+                },
+                {
+                  "group": "sortBy",
+                  "kind": "Transformation",
+                  "spec": {
+                    "options": {
+                      "fields": {},
+                      "sort": [
+                        {
+                          "field": "Requests",
+                          "desc": true
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "description": "Only routes with observed traffic appear. A route absent here was not called in this window \u2014 that is unknown, not healthy.",
+          "id": 8,
+          "links": [],
+          "title": "Routes \u2014 volume, latency, 5xx",
+          "vizConfig": {
+            "group": "table",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "noValue": "Unknown \u2014 not measured"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Requests"
+                    },
+                    "properties": [
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "p95"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "ms"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      },
+                      {
+                        "id": "noValue",
+                        "value": "\u2014"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "5xx %"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "percent"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 2
+                      },
+                      {
+                        "id": "noValue",
+                        "value": "\u2014"
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "color": "text"
+                            },
+                            {
+                              "color": "green",
+                              "value": 0
+                            },
+                            {
+                              "color": "orange",
+                              "value": 1
+                            },
+                            {
+                              "color": "red",
+                              "value": 5
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-text"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "showHeader": true,
+                "cellHeight": "sm"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-9": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum by (http_status_code) (rate(http_server_duration_milliseconds_count[$__rate_interval]))",
+                        "range": true,
+                        "legendFormat": "{{http_status_code}}"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Inbound status codes over time.",
+          "id": 9,
+          "links": [],
+          "title": "Requests by status class",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "reqps",
+                  "noValue": "Unknown \u2014 not measured",
+                  "custom": {
+                    "lineWidth": 2,
+                    "fillOpacity": 10,
+                    "gradientMode": "opacity",
+                    "showPoints": "never"
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-10": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum by (client, server) (rate(traces_service_graph_request_total[$__rate_interval])) * 60",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "100 * sum by (client, server) (rate(traces_service_graph_request_failed_total[$__rate_interval])) / clamp_min(sum by (client, server) (rate(traces_service_graph_request_total[$__rate_interval])), 0.0001)",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": [
+                {
+                  "group": "joinByField",
+                  "kind": "Transformation",
+                  "spec": {
+                    "options": {
+                      "byField": "server",
+                      "mode": "outer"
+                    }
+                  }
+                },
+                {
+                  "group": "organize",
+                  "kind": "Transformation",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {
+                        "Time 1": true,
+                        "Time 2": true,
+                        "client 2": true
+                      },
+                      "renameByName": {
+                        "client 1": "From",
+                        "server": "To",
+                        "Value #A": "Requests/min",
+                        "Value #B": "Span errors %"
+                      }
+                    }
+                  }
+                },
+                {
+                  "group": "sortBy",
+                  "kind": "Transformation",
+                  "spec": {
+                    "options": {
+                      "fields": {},
+                      "sort": [
+                        {
+                          "field": "Requests/min",
+                          "desc": true
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "description": "Raw OTel span-error share per dependency path. Not a business SLI: expected outcomes such as Angie's transcript-not-ready 404 polling are counted as failures here. Confirm in traces before escalating.",
+          "id": 10,
+          "links": [],
+          "title": "Outbound dependency paths \u2014 raw span errors, diagnostic only",
+          "vizConfig": {
+            "group": "table",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "noValue": "Unknown \u2014 not measured"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Requests/min"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "rpm"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 1
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Span errors %"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "percent"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 2
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "showHeader": true,
+                "cellHeight": "sm"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-11": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "histogram_quantile(0.95, sum by (le) (rate(http_client_duration_milliseconds_bucket[$__rate_interval])))",
+                        "range": true,
+                        "legendFormat": "p95"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "histogram_quantile(0.5, sum by (le) (rate(http_client_duration_milliseconds_bucket[$__rate_interval])))",
+                        "range": true,
+                        "legendFormat": "p50"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Latency of calls SOMA makes to external APIs. Peer hostname is not on this metric \u2014 use the dependency table or traces to attribute it.",
+          "id": 11,
+          "links": [],
+          "title": "Outbound call latency",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "ms",
+                  "noValue": "Unknown \u2014 not measured",
+                  "custom": {
+                    "lineWidth": 2,
+                    "fillOpacity": 10,
+                    "gradientMode": "opacity",
+                    "showPoints": "never"
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-12": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum by (http_status_code) (rate(http_client_duration_milliseconds_count[$__rate_interval]))",
+                        "range": true,
+                        "legendFormat": "{{http_status_code}}"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Status codes SOMA receives from external APIs.",
+          "id": 12,
+          "links": [],
+          "title": "Outbound calls by status",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "reqps",
+                  "noValue": "Unknown \u2014 not measured",
+                  "custom": {
+                    "lineWidth": 2,
+                    "fillOpacity": 10,
+                    "gradientMode": "opacity",
+                    "showPoints": "never"
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-13": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(rate(traces_spanmetrics_calls_total{span_name=~\"(ingestion|claude_session|vendor_campaign|quote|slack)\\\\..*\"}[$__rate_interval])) * 60",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Rate of terminal workflow outcomes across every traced workflow.",
+          "id": 13,
+          "links": [],
+          "title": "Workflow spans/min",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "opm",
+                  "decimals": 1,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "none"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-14": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(increase(traces_spanmetrics_calls_total{span_name=~\"(ingestion|claude_session|vendor_campaign|quote|slack)\\\\..*\", status_code=\"STATUS_CODE_ERROR\"}[$__range])) or sum(increase(traces_spanmetrics_calls_total{span_name=~\"(ingestion|claude_session|vendor_campaign|quote|slack)\\\\..*\"}[$__range])) * 0",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Workflow attempts that ended in a terminal failure. Retries are deliberately not errors here.",
+          "id": 14,
+          "links": [],
+          "title": "Span-error outcomes",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short",
+                  "decimals": 0,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      },
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 1
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "none"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-15": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "count(count by (span_name) (traces_spanmetrics_calls_total{span_name=~\"(ingestion|claude_session|vendor_campaign|quote|slack)\\\\..*\"}))",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "How many workflow stages are reporting. Compare against what you expect to be deployed.",
+          "id": 15,
+          "links": [],
+          "title": "Distinct stages",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short",
+                  "decimals": 0,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "none"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-16": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "histogram_quantile(0.95, sum by (le) (rate(traces_spanmetrics_duration_milliseconds_bucket{span_name=~\"(ingestion|claude_session|vendor_campaign|quote|slack)\\\\..*\"}[$__rate_interval])))",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Slowest-decile duration of one workflow attempt, claim to terminal outcome.",
+          "id": 16,
+          "links": [],
+          "title": "Workflow p95",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "ms",
+                  "decimals": 0,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "none"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-17": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum by (span_name) (rate(traces_spanmetrics_calls_total{span_name=~\"(ingestion|claude_session|vendor_campaign|quote|slack)\\\\..*\"}[$__rate_interval])) * 60",
+                        "range": true,
+                        "legendFormat": "{{span_name}}"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Terminal outcomes per minute for each workflow stage.",
+          "id": 17,
+          "links": [],
+          "title": "Stage throughput",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "opm",
+                  "noValue": "Unknown \u2014 not measured",
+                  "custom": {
+                    "lineWidth": 2,
+                    "fillOpacity": 10,
+                    "gradientMode": "opacity",
+                    "showPoints": "never"
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-18": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "histogram_quantile(0.95, sum by (le, span_name) (rate(traces_spanmetrics_duration_milliseconds_bucket{span_name=~\"(ingestion|claude_session|vendor_campaign|quote|slack)\\\\..*\"}[$__rate_interval])))",
+                        "range": true,
+                        "legendFormat": "{{span_name}}"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Per-stage p95 duration.",
+          "id": 18,
+          "links": [],
+          "title": "Stage latency p95",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "ms",
+                  "noValue": "Unknown \u2014 not measured",
+                  "custom": {
+                    "lineWidth": 2,
+                    "fillOpacity": 10,
+                    "gradientMode": "opacity",
+                    "showPoints": "never"
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-19": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 19,
+          "links": [],
+          "title": "Reading workflow spans",
+          "vizConfig": {
+            "group": "text",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
+              "options": {
+                "mode": "markdown",
+                "content": "These are span metrics Alloy derives from the workflow spans each worker and handler emits. They carry `span_name` and `status_code` only \u2014 the richer dimensions (`result`, `job.id`, `job.type`, `job.attempt`, `enqueued.job.id`) live on the spans themselves.\n\nFor operator-facing per-workflow health, use **SOMA Workflow Health**. This tab is for engineering: comparing stage cost and spotting a stage that stopped reporting.\n\nRetries leave span status unset on purpose, so they never inflate the error count here. Filter `span.result` in traces to separate `retrying` from `failed`."
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-20": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "max(pg_database_size_bytes)",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Current Supabase database size.",
+          "id": 20,
+          "links": [],
+          "title": "Database size",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "bytes",
+                  "decimals": 2,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "none"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-21": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "deriv(pg_database_size_bytes[24h]) * 86400",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Linear fit over the last 24h. Writes concentrate in the US business day, so this figure swings with the time of day \u2014 read it as a trend across days, not a reading of the last hour.",
+          "id": 21,
+          "links": [],
+          "title": "Growth per day",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "bytes",
+                  "decimals": 2,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "none"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-22": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "max(physical_replication_lag_is_connected_to_primary)",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Whether a read replica is currently streaming from the primary. Every replication lag metric reads a healthy-looking 0 when no replica exists, so this panel is what makes those numbers safe to interpret.",
+          "id": 22,
+          "links": [],
+          "title": "Replica attached",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short",
+                  "decimals": 0,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      }
+                    ]
+                  },
+                  "mappings": [
+                    {
+                      "type": "value",
+                      "options": {
+                        "0": {
+                          "text": "No replica attached",
+                          "color": "text",
+                          "index": 0
+                        },
+                        "1": {
+                          "text": "Attached",
+                          "color": "green",
+                          "index": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "none"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-23": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "max(physical_replication_lag_physical_replication_lag_seconds and physical_replication_lag_is_connected_to_primary == 1)",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Seconds the replica trails the primary. Shows unknown when no replica is attached, rather than 0.",
+          "id": 23,
+          "links": [],
+          "title": "Replica lag",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "s",
+                  "decimals": 1,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      },
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "orange",
+                        "value": 30
+                      },
+                      {
+                        "color": "red",
+                        "value": 60
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "none"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-24": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "max(pg_database_size_bytes)",
+                        "range": true,
+                        "legendFormat": "size"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Absolute size. The slope is the thing to watch, not the value.",
+          "id": 24,
+          "links": [],
+          "title": "Database size over time",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "bytes",
+                  "noValue": "Unknown \u2014 not measured",
+                  "custom": {
+                    "lineWidth": 2,
+                    "fillOpacity": 10,
+                    "gradientMode": "opacity",
+                    "showPoints": "never"
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-25": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(rate(soma_angie_status_lookup_pages_total[$__rate_interval])) / clamp_min(sum(rate(soma_angie_status_lookup_operations_total[$__rate_interval])), 0.0001)",
+                        "range": true,
+                        "legendFormat": "queries per lookup"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(rate(soma_angie_status_lookup_rows_total[$__rate_interval])) / clamp_min(sum(rate(soma_angie_status_lookup_operations_total[$__rate_interval])), 0.0001)",
+                        "range": true,
+                        "legendFormat": "rows per lookup"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Database work per automatic summary lookup. The scoped strategy should hold this at one query and one row; the bulk strategy pages the whole session table. Absent until a session summary is saved.",
+          "id": 25,
+          "links": [],
+          "title": "Angie summary status lookup \u2014 queries and rows per lookup",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short",
+                  "noValue": "Unknown \u2014 not measured",
+                  "custom": {
+                    "lineWidth": 2,
+                    "fillOpacity": 10,
+                    "gradientMode": "opacity",
+                    "showPoints": "never"
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-26": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum by (strategy, outcome) (rate(soma_angie_status_lookup_operations_total[$__rate_interval])) * 60",
+                        "range": true,
+                        "legendFormat": "{{strategy}} \u00b7 {{outcome}}"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Lookup rate split by strategy and outcome. Only the strategy the feature flag selects will appear.",
+          "id": 26,
+          "links": [],
+          "title": "Angie lookup outcomes by strategy",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "opm",
+                  "noValue": "Unknown \u2014 not measured",
+                  "custom": {
+                    "lineWidth": 2,
+                    "fillOpacity": 10,
+                    "gradientMode": "opacity",
+                    "showPoints": "never"
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-27": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "histogram_quantile(0.95, sum by (le) (rate(soma_angie_status_lookup_duration_milliseconds_bucket[$__rate_interval])))",
+                        "range": true,
+                        "legendFormat": "p95"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "How long one automatic summary status lookup takes.",
+          "id": 27,
+          "links": [],
+          "title": "Angie lookup latency p95",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "ms",
+                  "noValue": "Unknown \u2014 not measured",
+                  "custom": {
+                    "lineWidth": 2,
+                    "fillOpacity": 10,
+                    "gradientMode": "opacity",
+                    "showPoints": "never"
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-28": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 28,
+          "links": [],
+          "title": "Reading database load",
+          "vizConfig": {
+            "group": "text",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
+              "options": {
+                "mode": "markdown",
+                "content": "**Replication.** No replica is attached today \u2014 the read replica is a recommendation, not yet provisioned. That is why *Replica attached* sits next to *Replica lag*: with nothing streaming, every lag metric reads 0, which is absence masquerading as health. Three non-paging alerts cover this and stay silent until a replica exists: lag above 60s, WAL replay paused, and a replica that was attached within 6h disappearing.\n\n**Growth.** Writes follow the US business day, so a 12-hour window straddling the quiet hours will understate the rate and one covering the working day will overstate it. Judge growth across whole days.\n\n**Angie lookups.** These panels answer whether scoping the summary status lookup actually reduced database reads. They are absent until an Angie session saves a summary, and only the strategy currently selected by `ANGIE_SCOPED_SUMMARY_STATUS_ENABLED` will report \u2014 so the scoped-versus-bulk comparison needs the flag flipped to be visible."
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-29": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(increase(otelcol_exporter_sent_spans_total[$__range]))",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Spans the collector successfully shipped to Grafana Cloud in this window.",
+          "id": 29,
+          "links": [],
+          "title": "Spans exported",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short",
+                  "decimals": 0,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "none"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-30": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(increase(otelcol_exporter_send_failed_spans_total[$__range])) or sum(increase(otelcol_exporter_sent_spans_total[$__range])) * 0",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Spans the collector could not ship. The counter is absent until it first fires, so this panel forces it to 0 when exports are working \u2014 an absent series here would otherwise read as unknown.",
+          "id": 30,
+          "links": [],
+          "title": "Export failures",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short",
+                  "decimals": 0,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      },
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 1
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "none"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-31": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(increase(otelcol_receiver_refused_spans_total[$__range])) or sum(increase(otelcol_receiver_accepted_spans_total[$__range])) * 0",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Spans the collector rejected at ingest, usually backpressure. Non-zero means telemetry is being dropped before it leaves the network.",
+          "id": 31,
+          "links": [],
+          "title": "Refused spans",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short",
+                  "decimals": 0,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      },
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 1
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "none"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-32": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "100 * sum(otelcol_exporter_queue_size) / clamp_min(sum(otelcol_exporter_queue_capacity), 1)",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "How full the collector's export queue is. Sustained growth means the collector cannot drain to Grafana Cloud as fast as SOMA produces telemetry.",
+          "id": 32,
+          "links": [],
+          "title": "Export queue used",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "percent",
+                  "decimals": 2,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      },
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "orange",
+                        "value": 50
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "none"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-33": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(rate(otelcol_receiver_accepted_spans_total[$__rate_interval]))",
+                        "range": true,
+                        "legendFormat": "accepted"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(rate(otelcol_exporter_sent_spans_total[$__rate_interval]))",
+                        "range": true,
+                        "legendFormat": "exported"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(rate(otelcol_receiver_refused_spans_total[$__rate_interval]))",
+                        "range": true,
+                        "legendFormat": "refused"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "C",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Accepted should track exported. A widening gap means spans are being buffered or dropped.",
+          "id": 33,
+          "links": [],
+          "title": "Collector span pipeline",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "cps",
+                  "noValue": "Unknown \u2014 not measured",
+                  "custom": {
+                    "lineWidth": 2,
+                    "fillOpacity": 10,
+                    "gradientMode": "opacity",
+                    "showPoints": "never"
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-34": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "time() - max by (service_name) (timestamp(http_server_duration_milliseconds_count))",
+                        "range": true,
+                        "legendFormat": "{{service_name}}"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Seconds since each service last reported HTTP telemetry. This metric only advances when requests arrive, so it climbs overnight on US Eastern hours for legitimate reasons. A service climbing while its siblings stay flat is the real signal; everything climbing together is just the quiet hours.",
+          "id": 34,
+          "links": [],
+          "title": "Telemetry freshness by service",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "s",
+                  "noValue": "Unknown \u2014 not measured",
+                  "custom": {
+                    "lineWidth": 2,
+                    "fillOpacity": 10,
+                    "gradientMode": "opacity",
+                    "showPoints": "never"
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-35": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 35,
+          "links": [],
+          "title": "Why this tab exists",
+          "vizConfig": {
+            "group": "text",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
+              "options": {
+                "mode": "markdown",
+                "content": "Every other panel in SOMA's dashboards is only as trustworthy as this pipeline. If the collector stops exporting, every chart flattens to zero and nothing looks wrong.\n\n**Export failures** and **Refused spans** are the two signals worth alerting on before any business SLO exists, because they invalidate all the others. **Telemetry freshness** catches the other failure shape: a service that died rather than a collector that broke.\n\nStaging telemetry is intentionally disabled and its collector is scaled to zero, so staging is expected to be absent here.\n\nTimes are shown in US Eastern, matching the hours SOMA's operators work. Volume swings roughly 75x between the business day and overnight, so read every rate against the time of day before calling it a regression."
+              }
+            },
+            "version": ""
+          }
+        }
+      }
+    },
+    "layout": {
+      "kind": "TabsLayout",
+      "spec": {
+        "tabs": [
+          {
+            "kind": "TabsLayoutTab",
+            "spec": {
+              "title": "Service health",
+              "layout": {
+                "kind": "GridLayout",
+                "spec": {
+                  "items": [
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-1"
+                        },
+                        "height": 4,
+                        "width": 6,
+                        "x": 0,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-2"
+                        },
+                        "height": 4,
+                        "width": 6,
+                        "x": 6,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-3"
+                        },
+                        "height": 4,
+                        "width": 6,
+                        "x": 12,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-4"
+                        },
+                        "height": 4,
+                        "width": 6,
+                        "x": 18,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-5"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 0,
+                        "y": 4
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-6"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 12,
+                        "y": 4
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-7"
+                        },
+                        "height": 8,
+                        "width": 24,
+                        "x": 0,
+                        "y": 12
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "kind": "TabsLayoutTab",
+            "spec": {
+              "title": "HTTP routes",
+              "layout": {
+                "kind": "GridLayout",
+                "spec": {
+                  "items": [
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-8"
+                        },
+                        "height": 11,
+                        "width": 24,
+                        "x": 0,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-9"
+                        },
+                        "height": 8,
+                        "width": 24,
+                        "x": 0,
+                        "y": 11
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "kind": "TabsLayoutTab",
+            "spec": {
+              "title": "Dependencies",
+              "layout": {
+                "kind": "GridLayout",
+                "spec": {
+                  "items": [
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-10"
+                        },
+                        "height": 11,
+                        "width": 24,
+                        "x": 0,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-11"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 0,
+                        "y": 11
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-12"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 12,
+                        "y": 11
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "kind": "TabsLayoutTab",
+            "spec": {
+              "title": "Workflow spans",
+              "layout": {
+                "kind": "GridLayout",
+                "spec": {
+                  "items": [
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-13"
+                        },
+                        "height": 4,
+                        "width": 6,
+                        "x": 0,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-14"
+                        },
+                        "height": 4,
+                        "width": 6,
+                        "x": 6,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-15"
+                        },
+                        "height": 4,
+                        "width": 6,
+                        "x": 12,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-16"
+                        },
+                        "height": 4,
+                        "width": 6,
+                        "x": 18,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-17"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 0,
+                        "y": 4
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-18"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 12,
+                        "y": 4
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-19"
+                        },
+                        "height": 6,
+                        "width": 24,
+                        "x": 0,
+                        "y": 12
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "kind": "TabsLayoutTab",
+            "spec": {
+              "title": "Database load",
+              "layout": {
+                "kind": "GridLayout",
+                "spec": {
+                  "items": [
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-20"
+                        },
+                        "height": 4,
+                        "width": 6,
+                        "x": 0,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-21"
+                        },
+                        "height": 4,
+                        "width": 6,
+                        "x": 6,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-22"
+                        },
+                        "height": 4,
+                        "width": 6,
+                        "x": 12,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-23"
+                        },
+                        "height": 4,
+                        "width": 6,
+                        "x": 18,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-24"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 0,
+                        "y": 4
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-25"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 12,
+                        "y": 4
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-26"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 0,
+                        "y": 12
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-27"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 12,
+                        "y": 12
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-28"
+                        },
+                        "height": 7,
+                        "width": 24,
+                        "x": 0,
+                        "y": 20
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "kind": "TabsLayoutTab",
+            "spec": {
+              "title": "Telemetry pipeline",
+              "layout": {
+                "kind": "GridLayout",
+                "spec": {
+                  "items": [
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-29"
+                        },
+                        "height": 4,
+                        "width": 6,
+                        "x": 0,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-30"
+                        },
+                        "height": 4,
+                        "width": 6,
+                        "x": 6,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-31"
+                        },
+                        "height": 4,
+                        "width": 6,
+                        "x": 12,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-32"
+                        },
+                        "height": 4,
+                        "width": 6,
+                        "x": 18,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-33"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 0,
+                        "y": 4
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-34"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 12,
+                        "y": 4
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-35"
+                        },
+                        "height": 6,
+                        "width": 24,
+                        "x": 0,
+                        "y": 12
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "links": [
+      {
+        "title": "SOMA Workflow Health",
+        "type": "link",
+        "url": "/d/soma-workflow-health/soma-workflow-health",
+        "targetBlank": false,
+        "includeVars": false,
+        "keepTime": true,
+        "asDropdown": false,
+        "icon": "external link",
+        "tags": [],
+        "tooltip": "Per-workflow operator view"
+      },
+      {
+        "title": "SOMA Operations",
+        "type": "link",
+        "url": "/d/soma-operations/soma-operations",
+        "targetBlank": false,
+        "includeVars": false,
+        "keepTime": true,
+        "asDropdown": false,
+        "icon": "external link",
+        "tags": [],
+        "tooltip": "Webhook receipt and processing overview"
+      }
+    ],
+    "liveNow": false,
+    "preload": false,
+    "tags": [
+      "soma",
+      "engineering"
+    ],
+    "timeSettings": {
+      "autoRefresh": "1m",
+      "autoRefreshIntervals": [
+        "30s",
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h"
+      ],
+      "fiscalYearStartMonth": 0,
+      "from": "now-6h",
+      "hideTimepicker": false,
+      "timezone": "America/New_York",
+      "to": "now"
+    },
+    "title": "SOMA Engineering",
+    "variables": []
+  }
+}
