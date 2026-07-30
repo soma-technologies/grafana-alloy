@@ -308,7 +308,7 @@
               "transformations": []
             }
           },
-          "description": "Retry events in the selected range. Review when non-zero; confirm whether each retry later succeeded.",
+          "description": "Retry events in the selected range. Deliberately uncoloured: a retry has not ended yet, so it is neither a success nor a failure. Retries becoming failures is what Processing failures reports. Confirm each retry later succeeded.",
           "id": 4,
           "links": [],
           "title": "Processing retries",
@@ -325,15 +325,7 @@
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green"
-                      },
-                      {
-                        "color": "yellow",
-                        "value": 1
-                      },
-                      {
-                        "color": "red",
-                        "value": 10
+                        "color": "text"
                       }
                     ]
                   }
@@ -1938,16 +1930,16 @@
     },
     "links": [
       {
-        "title": "Engineering diagnostics \u2014 Soma Metrics",
+        "title": "Engineering diagnostics \u2014 SOMA Engineering",
         "type": "link",
-        "url": "/d/an29kk/soma-metrics",
+        "url": "/d/soma-engineering/soma-engineering",
         "targetBlank": false,
         "includeVars": false,
         "keepTime": true,
         "asDropdown": false,
         "icon": "external link",
         "tags": [],
-        "tooltip": "Open the engineering HTTP and collector dashboard"
+        "tooltip": "HTTP, routes, dependencies, workflow spans, database load, telemetry pipeline"
       }
     ],
     "liveNow": false,

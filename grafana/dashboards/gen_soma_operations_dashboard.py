@@ -149,8 +149,10 @@ panels = [
         "Processing retries",
         18,
         f'sum(increase(soma_webhook_processing_total{{{source_filter}, outcome="retrying"}}[$__range])) or vector(0)',
-        "Retry events in the selected range. Review when non-zero; confirm whether each retry later succeeded.",
-        thresholds=[{"color": "green"}, {"color": "yellow", "value": 1}, {"color": "red", "value": 10}],
+        "Retry events in the selected range. Deliberately uncoloured: a retry has not "
+        "ended yet, so it is neither a success nor a failure. Retries becoming failures "
+        "is what Processing failures reports. Confirm each retry later succeeded.",
+        thresholds=[{"color": "text"}],
     ),
 ]
 
@@ -699,16 +701,16 @@ dashboard = {
         "layout": {"kind": "TabsLayout", "spec": {"tabs": tabs}},
         "links": [
             {
-                "title": "Engineering diagnostics — Soma Metrics",
+                "title": "Engineering diagnostics — SOMA Engineering",
                 "type": "link",
-                "url": "/d/an29kk/soma-metrics",
+                "url": "/d/soma-engineering/soma-engineering",
                 "targetBlank": False,
                 "includeVars": False,
                 "keepTime": True,
                 "asDropdown": False,
                 "icon": "external link",
                 "tags": [],
-                "tooltip": "Open the engineering HTTP and collector dashboard",
+                "tooltip": "HTTP, routes, dependencies, workflow spans, database load, telemetry pipeline",
             }
         ],
         "liveNow": False,
