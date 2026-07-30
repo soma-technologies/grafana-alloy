@@ -1727,6 +1727,81 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
+                        "expr": "sum(rate(soma_poll_reads_total{outcome=\"ok\"}[5m])) * 60",
+                        "instant": true,
+                        "format": "table",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Successful reads from the transcript source. This is the baseline the refusal count is meaningless without: zero refusals with zero reads is a stopped system, not a healthy one.",
+          "id": 22,
+          "links": [],
+          "title": "Transcript reads OK / min",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "opm",
+                  "decimals": 1,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "area"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-23": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
                         "expr": "sum(rate(soma_poll_reads_total{outcome=~\"terminal|exhausted\"}[5m])) * 60",
                         "instant": true,
                         "format": "table",
@@ -1742,8 +1817,8 @@
               "transformations": []
             }
           },
-          "description": "Reads against the Angie MacBook that the pacer gave up on. terminal is a 401 or 403 from the source; exhausted is a run of failures. A refused read issues no HTTP request, so outbound volume falls when this rises.",
-          "id": 22,
+          "description": "Reads the pacer gave up on. terminal is a 401 or 403 from the source; exhausted is a run of failures. A refused read issues no HTTP request, so outbound volume falls when this rises.",
+          "id": 23,
           "links": [],
           "title": "Transcript reads refused / min",
           "vizConfig": {
@@ -1795,7 +1870,157 @@
           }
         }
       },
-      "panel-23": {
+      "panel-24": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(rate(soma_storage_operations_total{operation=\"upload\",outcome=\"success\"}[5m])) * 60",
+                        "instant": true,
+                        "format": "table",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Transcripts that actually reached storage. Distinct from the allowed rate above: an admitted upload can still fail at the provider.",
+          "id": 24,
+          "links": [],
+          "title": "Uploads completed / min",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "opm",
+                  "decimals": 1,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "area"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-25": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(rate(soma_storage_admissions_total[5m])) * 60",
+                        "instant": true,
+                        "format": "table",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Every admission decision, allowed or refused. If this reaches zero no archival is being attempted at all, which every other panel on this tab renders as calm.",
+          "id": 25,
+          "links": [],
+          "title": "Decisions / min",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "opm",
+                  "decimals": 1,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "area"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-26": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -1830,7 +2055,7 @@
             }
           },
           "description": "Reads against the transcript source by result. failed backs off and retries; terminal and exhausted stop that session's polling entirely. The MacBook sits behind the same edge as storage, so a block here is reachable too.",
-          "id": 23,
+          "id": 26,
           "links": [],
           "title": "Transcript read outcomes",
           "vizConfig": {
@@ -1878,7 +2103,7 @@
           }
         }
       },
-      "panel-24": {
+      "panel-27": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -1913,7 +2138,7 @@
             }
           },
           "description": "P95 delay the pacer chose. Sitting at the configured interval means healthy polling; climbing means reads are failing and backing off.",
-          "id": 24,
+          "id": 27,
           "links": [],
           "title": "Backoff before the next read",
           "vizConfig": {
@@ -1961,7 +2186,7 @@
           }
         }
       },
-      "panel-25": {
+      "panel-28": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -1995,7 +2220,7 @@
             }
           },
           "description": "The edge's own reason code parsed from non-JSON error bodies. cloudflare_1015 is rate limiting, which expires on a timer; cloudflare_1020 is a firewall rule, which does not. A missing series means no edge block pages were returned.",
-          "id": 25,
+          "id": 28,
           "links": [],
           "title": "Edge block reason codes",
           "vizConfig": {
@@ -2352,7 +2577,7 @@
                         "height": 8,
                         "width": 12,
                         "x": 0,
-                        "y": 5
+                        "y": 10
                       }
                     },
                     {
@@ -2365,7 +2590,7 @@
                         "height": 8,
                         "width": 12,
                         "x": 12,
-                        "y": 5
+                        "y": 10
                       }
                     },
                     {
@@ -2378,7 +2603,7 @@
                         "height": 5,
                         "width": 6,
                         "x": 0,
-                        "y": 0
+                        "y": 5
                       }
                     },
                     {
@@ -2388,10 +2613,10 @@
                           "kind": "ElementReference",
                           "name": "panel-23"
                         },
-                        "height": 8,
-                        "width": 12,
-                        "x": 0,
-                        "y": 21
+                        "height": 5,
+                        "width": 6,
+                        "x": 6,
+                        "y": 5
                       }
                     },
                     {
@@ -2401,10 +2626,10 @@
                           "kind": "ElementReference",
                           "name": "panel-24"
                         },
-                        "height": 8,
-                        "width": 12,
+                        "height": 5,
+                        "width": 6,
                         "x": 12,
-                        "y": 21
+                        "y": 5
                       }
                     },
                     {
@@ -2414,10 +2639,49 @@
                           "kind": "ElementReference",
                           "name": "panel-25"
                         },
+                        "height": 5,
+                        "width": 6,
+                        "x": 18,
+                        "y": 5
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-26"
+                        },
                         "height": 8,
                         "width": 12,
                         "x": 0,
-                        "y": 29
+                        "y": 18
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-27"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 12,
+                        "y": 18
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-28"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 0,
+                        "y": 26
                       }
                     }
                   ]
