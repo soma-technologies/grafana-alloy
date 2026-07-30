@@ -555,10 +555,44 @@ shedding = [
         "short",
         draw_style="bars",
     ),
+    stat(
+        "Transcript reads refused / min",
+        0,
+        'sum(rate(soma_poll_reads_total{outcome=~"terminal|exhausted"}[5m])) * 60',
+        "Reads against the Angie MacBook that the pacer gave up on. terminal is a 401 or 403 "
+        "from the source; exhausted is a run of failures. A refused read issues no HTTP "
+        "request, so outbound volume falls when this rises.",
+        unit="opm",
+        thresholds=COUNT_STEPS,
+    ),
+    timeseries(
+        "Transcript read outcomes",
+        0,
+        21,
+        "sum by (outcome) (rate(soma_poll_reads_total[$__rate_interval])) * 60",
+        "{{outcome}}",
+        "Reads against the transcript source by result. failed backs off and retries; "
+        "terminal and exhausted stop that session's polling entirely. The MacBook sits "
+        "behind the same edge as storage, so a block here is reachable too.",
+        "short",
+        draw_style="bars",
+        stack=True,
+    ),
+    timeseries(
+        "Backoff before the next read",
+        12,
+        21,
+        "histogram_quantile(0.95, sum by (le) "
+        "(rate(soma_poll_wait_bucket[$__rate_interval])))",
+        "p95 wait",
+        "P95 delay the pacer chose. Sitting at the configured interval means healthy "
+        "polling; climbing means reads are failing and backing off.",
+        "s",
+    ),
     timeseries(
         "Edge block reason codes",
         0,
-        13,
+        29,
         "sum by (upstream_body_marker, upstream_status) "
         '(count_over_time({service_name=~"soma-.+"} | json '
         '| event="storage_operation_failed" '
