@@ -53,12 +53,20 @@ def field_override(name, properties):
     }
 
 
+def latest_account_metric(metric):
+    """Select the freshest collector instance and remove its restart UUID label."""
+    return (
+        f"max by (account) ({metric} and on (account, instance) "
+        f"topk by (account) (1, timestamp({metric})))"
+    )
+
+
 def account_usage_timeseries(title, x, metric, description):
     result = timeseries(
         title,
         x,
         16,
-        metric,
+        latest_account_metric(metric),
         "{{account}}",
         description,
         "percent",
@@ -73,30 +81,53 @@ def account_usage_timeseries(title, x, metric, description):
 
 def account_capacity_table():
     queries = [
-        target("angie_account_active_sessions", instant=True, refId="A"),
-        target("angie_account_capacity_sessions", instant=True, refId="B"),
+        target(latest_account_metric("angie_account_active_sessions"), instant=True, refId="A"),
         target(
-            "clamp_min(angie_account_capacity_sessions - angie_account_active_sessions, 0)",
+            latest_account_metric("angie_account_capacity_sessions"),
+            instant=True,
+            refId="B",
+        ),
+        target(
+            "clamp_min("
+            f"{latest_account_metric('angie_account_capacity_sessions')} - "
+            f"{latest_account_metric('angie_account_active_sessions')}, 0)",
             instant=True,
             refId="C",
         ),
-        target("angie_account_usage_five_hour_percent", instant=True, refId="D"),
         target(
-            "clamp_min(angie_account_usage_five_hour_reset_unixtime - time(), 0)",
+            latest_account_metric("angie_account_usage_five_hour_percent"),
+            instant=True,
+            refId="D",
+        ),
+        target(
+            "clamp_min("
+            f"{latest_account_metric('angie_account_usage_five_hour_reset_unixtime')} "
+            "- time(), 0)",
             instant=True,
             refId="E",
         ),
-        target("angie_account_usage_seven_day_percent", instant=True, refId="F"),
         target(
-            "clamp_min(angie_account_usage_seven_day_reset_unixtime - time(), 0)",
+            latest_account_metric("angie_account_usage_seven_day_percent"),
+            instant=True,
+            refId="F",
+        ),
+        target(
+            "clamp_min("
+            f"{latest_account_metric('angie_account_usage_seven_day_reset_unixtime')} "
+            "- time(), 0)",
             instant=True,
             refId="G",
         ),
-        target("angie_account_cooldown_remaining_seconds", instant=True, refId="H"),
-        target("angie_account_eligible", instant=True, refId="I"),
-        target("angie_account_disabled", instant=True, refId="J"),
         target(
-            "clamp_min(time() - angie_account_usage_updated_unixtime, 0)",
+            latest_account_metric("angie_account_cooldown_remaining_seconds"),
+            instant=True,
+            refId="H",
+        ),
+        target(latest_account_metric("angie_account_eligible"), instant=True, refId="I"),
+        target(latest_account_metric("angie_account_disabled"), instant=True, refId="J"),
+        target(
+            "clamp_min(time() - "
+            f"{latest_account_metric('angie_account_usage_updated_unixtime')}, 0)",
             instant=True,
             refId="K",
         ),
@@ -121,6 +152,7 @@ def account_capacity_table():
             "id": "organize",
             "options": {
                 "excludeByName": {
+                    "__name__": True,
                     "Time": True,
                     **{f"Time {index}": True for index in range(1, 12)},
                 },
@@ -302,7 +334,9 @@ status = [
         "Available session slots by account",
         0,
         24,
-        "clamp_min(angie_account_capacity_sessions - angie_account_active_sessions, 0)",
+        "clamp_min("
+        f"{latest_account_metric('angie_account_capacity_sessions')} - "
+        f"{latest_account_metric('angie_account_active_sessions')}, 0)",
         "{{account}}",
         "Configured per-account concurrency minus active sessions. An account can still be "
         "ineligible because of a usage hold even when this value is above zero.",
@@ -312,7 +346,7 @@ status = [
         "Pool cooldown remaining by account",
         12,
         24,
-        "angie_account_cooldown_remaining_seconds",
+        latest_account_metric("angie_account_cooldown_remaining_seconds"),
         "{{account}}",
         "Seconds until Angie will schedule the account again. The table above shows the 5h and "
         "7d reset windows alongside this effective pool hold.",
