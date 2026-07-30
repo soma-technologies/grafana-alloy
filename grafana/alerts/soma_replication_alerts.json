@@ -1,0 +1,167 @@
+[
+  {
+    "uid": "soma-replica-lag-high",
+    "title": "Supabase replica lag is high",
+    "ruleGroup": "soma-database-replication",
+    "folderUID": "fwtfg9",
+    "condition": "C",
+    "for": "5m",
+    "data": [
+      {
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        },
+        "datasourceUid": "grafanacloud-prom",
+        "model": {
+          "refId": "A",
+          "expr": "physical_replication_lag_physical_replication_lag_seconds and physical_replication_lag_is_connected_to_primary == 1",
+          "instant": true,
+          "editorMode": "code"
+        }
+      },
+      {
+        "refId": "C",
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "C",
+          "type": "threshold",
+          "expression": "A",
+          "conditions": [
+            {
+              "evaluator": {
+                "type": "gt",
+                "params": [
+                  60
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "noDataState": "OK",
+    "execErrState": "OK",
+    "labels": {
+      "severity": "warning",
+      "paging": "false",
+      "team": "soma"
+    },
+    "annotations": {
+      "summary": "Read replica is more than 60s behind the primary",
+      "description": "Only evaluated while a replica is actually attached, so it stays silent until one exists. Reads routed to the replica are returning data at least this stale. Per the read-replica recommendation, live session state, job claiming and read-after-write must be on the primary \u2014 check that nothing latency-sensitive was moved.\n\nNon-paging while a baseline is established."
+    },
+    "isPaused": false
+  },
+  {
+    "uid": "soma-replica-replay-paused",
+    "title": "Supabase replica WAL replay is paused",
+    "ruleGroup": "soma-database-replication",
+    "folderUID": "fwtfg9",
+    "condition": "C",
+    "for": "2m",
+    "data": [
+      {
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        },
+        "datasourceUid": "grafanacloud-prom",
+        "model": {
+          "refId": "A",
+          "expr": "physical_replication_lag_is_wal_replay_paused == 1 and physical_replication_lag_is_connected_to_primary == 1",
+          "instant": true,
+          "editorMode": "code"
+        }
+      },
+      {
+        "refId": "C",
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "C",
+          "type": "threshold",
+          "expression": "A",
+          "conditions": [
+            {
+              "evaluator": {
+                "type": "gt",
+                "params": [
+                  0
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "noDataState": "OK",
+    "execErrState": "OK",
+    "labels": {
+      "severity": "warning",
+      "paging": "false",
+      "team": "soma"
+    },
+    "annotations": {
+      "summary": "Replica has stopped applying WAL",
+      "description": "Replay being paused means lag grows without bound regardless of what the lag figure currently reads, and WAL retention on the primary grows with it. On a database already near its disk ceiling that is the more urgent half of this alert.\n\nNon-paging while a baseline is established."
+    },
+    "isPaused": false
+  },
+  {
+    "uid": "soma-replica-disconnected",
+    "title": "Supabase replica disappeared",
+    "ruleGroup": "soma-database-replication",
+    "folderUID": "fwtfg9",
+    "condition": "C",
+    "for": "10m",
+    "data": [
+      {
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        },
+        "datasourceUid": "grafanacloud-prom",
+        "model": {
+          "refId": "A",
+          "expr": "physical_replication_lag_is_connected_to_primary == 0 and max_over_time(physical_replication_lag_is_connected_to_primary[6h]) == 1",
+          "instant": true,
+          "editorMode": "code"
+        }
+      },
+      {
+        "refId": "C",
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "C",
+          "type": "threshold",
+          "expression": "A",
+          "conditions": [
+            {
+              "evaluator": {
+                "type": "gt",
+                "params": [
+                  0
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "noDataState": "OK",
+    "execErrState": "OK",
+    "labels": {
+      "severity": "warning",
+      "paging": "false",
+      "team": "soma"
+    },
+    "annotations": {
+      "summary": "A replica that was attached within the last 6h is no longer attached",
+      "description": "This is the signal the plain lag alert cannot give: with no replica attached, every lag metric reads a healthy-looking 0. This rule only fires when a replica was present recently and has now gone, so absence cannot masquerade as health.\n\nNon-paging while a baseline is established."
+    },
+    "isPaused": false
+  }
+]
