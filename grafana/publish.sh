@@ -44,6 +44,18 @@ for name in "${dashboards[@]}"; do
   python3 "$generator" > "$target.tmp"
   mv "$target.tmp" "$target"
 
+  python3 -c '
+import json
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+dashboard = json.loads(path.read_text())
+layout = dashboard.get("spec", {}).get("layout", {}).get("kind")
+if layout != "TabsLayout":
+    raise SystemExit(f"{path}: managed dashboards must use top-level TabsLayout, got {layout!r}")
+' "$target"
+
   gcx resources validate -p "$target" -o json | grep -q '"failures": \[\]' \
     || { echo "validation failed for $name" >&2; gcx resources validate -p "$target"; exit 1; }
 

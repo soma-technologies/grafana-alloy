@@ -1,6 +1,6 @@
 # SOMA dashboards
 
-14 dashboards registered, 14 live in Grafana, 352 panels in total.
+15 dashboards registered, 15 live in Grafana, 365 panels in total.
 
 Single source of truth: `registry.json`. Regenerate this file with
 `python3 grafana/gen_dashboards.py > grafana/DASHBOARDS.md`. Do not hand-edit.
@@ -13,6 +13,7 @@ No drift: every live dashboard is registered and every registered dashboard is l
 |---|---|---|---|---|---|
 | SOMA Engineering | `soma-engineering` | managed | engineers | 35 | `gen_soma_engineering_dashboard.py` |
 | SOMA Operations | `soma-operations` | managed | operators | 16 | `gen_soma_operations_dashboard.py` |
+| SOMA Storage Observability | `soma-storage-observability` | managed | engineers | 13 | `gen_soma_storage_observability_dashboard.py` |
 | SOMA Workflow Health | `soma-workflow-health` | managed | operators | 47 | `gen_soma_workflow_health_dashboard.py` |
 | Supabase — Soma (corrected) | `soma-supabase` | keep | engineers | 29 | — |
 | Soma APM | `a5b6pg` | archive | none | 5 | — |
@@ -30,12 +31,12 @@ No drift: every live dashboard is registered and every registered dashboard is l
 
 | Type | Count |
 |---|---|
-| `timeseries` | 181 |
-| `stat` | 101 |
-| `table` | 24 |
-| `text` | 22 |
+| `timeseries` | 187 |
+| `stat` | 105 |
+| `table` | 25 |
+| `text` | 23 |
 | `gauge` | 16 |
-| `logs` | 3 |
+| `logs` | 4 |
 | `nodeGraph` | 2 |
 | `bargauge` | 1 |
 | `barchart` | 1 |
@@ -144,6 +145,30 @@ Webhook receipt and processing. Single page on purpose: an operator dashboard sh
 **How to read**
 
 - `text` — How to read this dashboard
+
+### SOMA Storage Observability — `soma-storage-observability` (13 panels)
+
+Provider-attempt health, traffic, latency, retries, safe failure logs, and traces for Soma's storage boundaries. Ratios are attempts, not unique workflows.
+
+**Health**
+
+- `stat` — Provider attempt error ratio
+- `stat` — Failed provider calls / min
+- `stat` — Retries / min
+- `stat` — P95 provider-call latency
+- `text` — How to read storage health
+**Traffic & latency**
+
+- `timeseries` — Storage provider attempt rate
+- `timeseries` — Provider attempt error ratio by workflow
+- `timeseries` — P95 latency by operation
+- `timeseries` — Attempted payload throughput
+**Failures & traces**
+
+- `logs` — Storage failure logs
+- `table` — Failed storage traces
+- `timeseries` — 5m failures by upstream status and service
+- `timeseries` — Retries, fallbacks and conflicts
 
 ### SOMA Workflow Health — `soma-workflow-health` (47 panels)
 

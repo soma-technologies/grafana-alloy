@@ -27,6 +27,22 @@
       ]
     },
     {
+      "uid": "soma-storage-observability",
+      "title": "SOMA Storage Observability",
+      "status": "managed",
+      "generator": "gen_soma_storage_observability_dashboard.py",
+      "audience": "engineers",
+      "note": "Provider-attempt health, traffic, latency, retries, safe failure logs, and traces for Soma's storage boundaries. Ratios are attempts, not unique workflows.",
+      "folder": "SOMA Engineering",
+      "tags": [
+        "engineering",
+        "observability",
+        "soma",
+        "storage",
+        "supabase"
+      ]
+    },
+    {
       "uid": "soma-operations",
       "title": "SOMA Operations",
       "status": "managed",
