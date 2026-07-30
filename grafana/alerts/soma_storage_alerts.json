@@ -1,0 +1,222 @@
+[
+  {
+    "uid": "soma-transcript-archive-failing",
+    "title": "Session transcript archival is failing",
+    "ruleGroup": "soma-storage-archival",
+    "folderUID": "fwtfg9",
+    "condition": "C",
+    "for": "10m",
+    "data": [
+      {
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 900,
+          "to": 0
+        },
+        "datasourceUid": "grafanacloud-prom",
+        "model": {
+          "refId": "A",
+          "expr": "sum(rate(soma_storage_operations_total{operation=\"upload\",outcome=\"error\"}[10m])) * 60",
+          "instant": true,
+          "editorMode": "code"
+        }
+      },
+      {
+        "refId": "C",
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "C",
+          "type": "threshold",
+          "expression": "A",
+          "conditions": [
+            {
+              "evaluator": {
+                "type": "gt",
+                "params": [
+                  20
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "noDataState": "OK",
+    "execErrState": "OK",
+    "labels": {
+      "severity": "critical",
+      "paging": "false",
+      "team": "soma"
+    },
+    "annotations": {
+      "summary": "Transcript uploads have been failing for 10 minutes",
+      "description": "Sustained upload failures to object storage. The 2026-07-30 outage sat at 800-1200/min for hours with nothing to detect it, so this rule exists mainly to bound how long that can happen again.\n\nCheck upstream_body_marker on the storage_operation_failed logs first. cloudflare_1015 is a rate-limit mitigation that expires on its own once offered load drops; cloudflare_1020 is a firewall rule that does not. Those need opposite responses.\n\nThis counts provider attempts, so retries inflate it. Read it against the allow rate on the dashboard's Load shedding tab before judging scale.\n\nNon-paging while a baseline is established."
+    },
+    "isPaused": false
+  },
+  {
+    "uid": "soma-transcript-archive-shedding",
+    "title": "Session transcript uploads are being shed",
+    "ruleGroup": "soma-storage-archival",
+    "folderUID": "fwtfg9",
+    "condition": "C",
+    "for": "10m",
+    "data": [
+      {
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 900,
+          "to": 0
+        },
+        "datasourceUid": "grafanacloud-prom",
+        "model": {
+          "refId": "A",
+          "expr": "sum(soma_storage_breaker_open{workflow=\"session_archive\"})",
+          "instant": true,
+          "editorMode": "code"
+        }
+      },
+      {
+        "refId": "C",
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "C",
+          "type": "threshold",
+          "expression": "A",
+          "conditions": [
+            {
+              "evaluator": {
+                "type": "gt",
+                "params": [
+                  0
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "noDataState": "OK",
+    "execErrState": "OK",
+    "labels": {
+      "severity": "warning",
+      "paging": "false",
+      "team": "soma"
+    },
+    "annotations": {
+      "summary": "The archive circuit breaker has been open for 10 minutes",
+      "description": "Uploads are being refused inside the process and are not reaching storage. This is the failure mode that reads as recovery: while the breaker is open the error rate falls to zero because nothing is being attempted.\n\nWhen this fires, the error-rate panels are meaningless. Read the allow rate and the admission decisions on the Load shedding tab instead.\n\nThe breaker probes on a doubling cooldown up to 15 minutes, so it closes on its own once the upstream recovers. Sustained firing means the upstream is still rejecting.\n\nSilent until backend#810 ships this metric.\n\nNon-paging while a baseline is established."
+    },
+    "isPaused": false
+  },
+  {
+    "uid": "soma-transcript-archive-abandoned",
+    "title": "Session transcripts are being abandoned",
+    "ruleGroup": "soma-storage-archival",
+    "folderUID": "fwtfg9",
+    "condition": "C",
+    "for": "15m",
+    "data": [
+      {
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 1800,
+          "to": 0
+        },
+        "datasourceUid": "grafanacloud-prom",
+        "model": {
+          "refId": "A",
+          "expr": "sum(rate(soma_storage_admissions_total{workflow=\"session_archive\",decision=\"abandon\"}[15m])) * 60",
+          "instant": true,
+          "editorMode": "code"
+        }
+      },
+      {
+        "refId": "C",
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "C",
+          "type": "threshold",
+          "expression": "A",
+          "conditions": [
+            {
+              "evaluator": {
+                "type": "gt",
+                "params": [
+                  1
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "noDataState": "OK",
+    "execErrState": "OK",
+    "labels": {
+      "severity": "warning",
+      "paging": "false",
+      "team": "soma"
+    },
+    "annotations": {
+      "summary": "Finished sessions are giving up on archival",
+      "description": "Sessions are ending without their transcript reaching storage. Unlike a deferred upload, an abandoned one is not retried by the session that produced it.\n\nThis is recoverable but not automatically within the session: the transcript remains on the Angie MacBook and the scheduled backfill replays it once the upstream returns. Confirm that job is running before assuming data loss.\n\nDeferrals are excluded deliberately. Outage mode defers every intermediate snapshot by design, so a deferral rate is normal and only abandonment indicates give-up.\n\nSilent until backend#810 ships this metric.\n\nNon-paging while a baseline is established."
+    },
+    "isPaused": false
+  },
+  {
+    "uid": "soma-transcript-source-unreachable",
+    "title": "The transcript source is refusing or unreachable",
+    "ruleGroup": "soma-storage-archival",
+    "folderUID": "fwtfg9",
+    "condition": "C",
+    "for": "10m",
+    "data": [
+      {
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 900,
+          "to": 0
+        },
+        "datasourceUid": "grafanacloud-prom",
+        "model": {
+          "refId": "A",
+          "expr": "sum(rate(soma_poll_reads_total{outcome=~\"terminal|exhausted\"}[10m])) * 60",
+          "instant": true,
+          "editorMode": "code"
+        }
+      },
+      {
+        "refId": "C",
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "C",
+          "type": "threshold",
+          "expression": "A",
+          "conditions": [
+            {
+              "evaluator": {
+                "type": "gt",
+                "params": [
+                  1
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "noDataState": "OK",
+    "execErrState": "OK",
+    "labels": {
+      "severity": "warning",
+      "paging": "false",
+      "team": "soma"
+    },
+    "annotations": {
+      "summary": "Transcript reads against the Angie MacBook are giving up",
+      "description": "Pollers are abandoning reads rather than retrying them. terminal means the source returned 401 or 403; exhausted means a run of failures without a usable response.\n\nThe MacBook is served through the same Cloudflare that rate-limited object storage, so an edge block is reachable here too — and it would affect session dispatch, not only archival. Check whether /claude/status answers before assuming the laptop is down.\n\nBecause a refused read issues no HTTP request, outbound request volume falls when this fires. Falling volume is the symptom, not reassurance.\n\nSilent until backend#813 ships this metric.\n\nNon-paging while a baseline is established."
+    },
+    "isPaused": false
+  }
+]
