@@ -361,7 +361,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "angie_account_active_sessions",
+                        "expr": "max by (account) (angie_account_active_sessions and on (account, instance) topk by (account) (1, timestamp(angie_account_active_sessions)))",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -383,7 +383,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "angie_account_capacity_sessions",
+                        "expr": "max by (account) (angie_account_capacity_sessions and on (account, instance) topk by (account) (1, timestamp(angie_account_capacity_sessions)))",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -405,7 +405,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "clamp_min(angie_account_capacity_sessions - angie_account_active_sessions, 0)",
+                        "expr": "clamp_min(max by (account) (angie_account_capacity_sessions and on (account, instance) topk by (account) (1, timestamp(angie_account_capacity_sessions))) - max by (account) (angie_account_active_sessions and on (account, instance) topk by (account) (1, timestamp(angie_account_active_sessions))), 0)",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -427,7 +427,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "angie_account_usage_five_hour_percent",
+                        "expr": "max by (account) (angie_account_usage_five_hour_percent and on (account, instance) topk by (account) (1, timestamp(angie_account_usage_five_hour_percent)))",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -449,7 +449,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "clamp_min(angie_account_usage_five_hour_reset_unixtime - time(), 0)",
+                        "expr": "clamp_min(max by (account) (angie_account_usage_five_hour_reset_unixtime and on (account, instance) topk by (account) (1, timestamp(angie_account_usage_five_hour_reset_unixtime))) - time(), 0)",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -471,7 +471,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "angie_account_usage_seven_day_percent",
+                        "expr": "max by (account) (angie_account_usage_seven_day_percent and on (account, instance) topk by (account) (1, timestamp(angie_account_usage_seven_day_percent)))",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -493,7 +493,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "clamp_min(angie_account_usage_seven_day_reset_unixtime - time(), 0)",
+                        "expr": "clamp_min(max by (account) (angie_account_usage_seven_day_reset_unixtime and on (account, instance) topk by (account) (1, timestamp(angie_account_usage_seven_day_reset_unixtime))) - time(), 0)",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -515,7 +515,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "angie_account_cooldown_remaining_seconds",
+                        "expr": "max by (account) (angie_account_cooldown_remaining_seconds and on (account, instance) topk by (account) (1, timestamp(angie_account_cooldown_remaining_seconds)))",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -537,7 +537,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "angie_account_eligible",
+                        "expr": "max by (account) (angie_account_eligible and on (account, instance) topk by (account) (1, timestamp(angie_account_eligible)))",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -559,7 +559,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "angie_account_disabled",
+                        "expr": "max by (account) (angie_account_disabled and on (account, instance) topk by (account) (1, timestamp(angie_account_disabled)))",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -581,7 +581,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "clamp_min(time() - angie_account_usage_updated_unixtime, 0)",
+                        "expr": "clamp_min(time() - max by (account) (angie_account_usage_updated_unixtime and on (account, instance) topk by (account) (1, timestamp(angie_account_usage_updated_unixtime))), 0)",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -610,6 +610,7 @@
                   "spec": {
                     "options": {
                       "excludeByName": {
+                        "__name__": true,
                         "Time": true,
                         "Time 1": true,
                         "Time 2": true,
@@ -986,7 +987,7 @@
                       "spec": {
                         "queryType": "range",
                         "editorMode": "code",
-                        "expr": "angie_account_usage_five_hour_percent",
+                        "expr": "max by (account) (angie_account_usage_five_hour_percent and on (account, instance) topk by (account) (1, timestamp(angie_account_usage_five_hour_percent)))",
                         "range": true,
                         "legendFormat": "{{account}}"
                       },
@@ -1091,7 +1092,7 @@
                       "spec": {
                         "queryType": "range",
                         "editorMode": "code",
-                        "expr": "angie_account_usage_seven_day_percent",
+                        "expr": "max by (account) (angie_account_usage_seven_day_percent and on (account, instance) topk by (account) (1, timestamp(angie_account_usage_seven_day_percent)))",
                         "range": true,
                         "legendFormat": "{{account}}"
                       },
@@ -1196,7 +1197,7 @@
                       "spec": {
                         "queryType": "range",
                         "editorMode": "code",
-                        "expr": "clamp_min(angie_account_capacity_sessions - angie_account_active_sessions, 0)",
+                        "expr": "clamp_min(max by (account) (angie_account_capacity_sessions and on (account, instance) topk by (account) (1, timestamp(angie_account_capacity_sessions))) - max by (account) (angie_account_active_sessions and on (account, instance) topk by (account) (1, timestamp(angie_account_active_sessions))), 0)",
                         "range": true,
                         "legendFormat": "{{account}}"
                       },
@@ -1279,7 +1280,7 @@
                       "spec": {
                         "queryType": "range",
                         "editorMode": "code",
-                        "expr": "angie_account_cooldown_remaining_seconds",
+                        "expr": "max by (account) (angie_account_cooldown_remaining_seconds and on (account, instance) topk by (account) (1, timestamp(angie_account_cooldown_remaining_seconds)))",
                         "range": true,
                         "legendFormat": "{{account}}"
                       },
