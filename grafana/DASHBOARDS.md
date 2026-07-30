@@ -1,6 +1,6 @@
 # SOMA dashboards
 
-15 dashboards registered, 15 live in Grafana, 365 panels in total.
+17 dashboards registered, 17 live in Grafana, 430 panels in total.
 
 Single source of truth: `registry.json`. Regenerate this file with
 `python3 grafana/gen_dashboards.py > grafana/DASHBOARDS.md`. Do not hand-edit.
@@ -11,9 +11,11 @@ No drift: every live dashboard is registered and every registered dashboard is l
 
 | Dashboard | UID | Status | Audience | Panels | Generator |
 |---|---|---|---|---|---|
+| SOMA Angie Observability | `soma-angie-observability` | managed | engineers | 38 | `gen_soma_angie_observability_dashboard.py` |
+| SOMA Angie — Claude Pool Status | `soma-angie-claude-pool` | managed | engineers | 25 | `gen_soma_angie_claude_pool_dashboard.py` |
 | SOMA Engineering | `soma-engineering` | managed | engineers | 35 | `gen_soma_engineering_dashboard.py` |
 | SOMA Operations | `soma-operations` | managed | operators | 16 | `gen_soma_operations_dashboard.py` |
-| SOMA Storage Observability | `soma-storage-observability` | managed | engineers | 13 | `gen_soma_storage_observability_dashboard.py` |
+| SOMA Storage Observability | `soma-storage-observability` | managed | engineers | 15 | `gen_soma_storage_observability_dashboard.py` |
 | SOMA Workflow Health | `soma-workflow-health` | managed | operators | 47 | `gen_soma_workflow_health_dashboard.py` |
 | Supabase — Soma (corrected) | `soma-supabase` | keep | engineers | 29 | — |
 | Soma APM | `a5b6pg` | archive | none | 5 | — |
@@ -31,12 +33,12 @@ No drift: every live dashboard is registered and every registered dashboard is l
 
 | Type | Count |
 |---|---|
-| `timeseries` | 187 |
-| `stat` | 105 |
-| `table` | 25 |
-| `text` | 23 |
-| `gauge` | 16 |
-| `logs` | 4 |
+| `timeseries` | 216 |
+| `stat` | 125 |
+| `table` | 27 |
+| `text` | 26 |
+| `gauge` | 24 |
+| `logs` | 7 |
 | `nodeGraph` | 2 |
 | `bargauge` | 1 |
 | `barchart` | 1 |
@@ -58,10 +60,100 @@ automatically wrong — but check here before adding a panel.
 | logs | `acn297`, `darwin-logs` |
 | mean time to resolve (mttr) | `63093493-af68-4fdd-89e9-511c24d8352d`, `6e19ccfc-2e2e-40d2-9d40-6890618ba164` |
 | network traffic | `d402d94e-da48-48e4-ac52-53026b96a000`, `darwin-overview` |
+| provider attempt error ratio | `soma-angie-observability`, `soma-storage-observability` |
 | request rate | `an29kk`, `soma-engineering` |
 | uptime | `d402d94e-da48-48e4-ac52-53026b96a000`, `darwin-overview` |
 
 ## Managed in this repo
+
+### SOMA Angie Observability — `soma-angie-observability` (38 panels)
+
+Terminal callback health, session and callback processing, Angie transcript storage, summary lookup work, safe failure logs, and traces. Provider-attempt ratios are diagnostic, not business SLIs.
+
+**Health**
+
+- `stat` — Completed terminal callbacks
+- `stat` — Failed terminal callbacks
+- `stat` — Rate-limited callbacks
+- `stat` — Master session failures
+- `gauge` — Terminal callback completion ratio
+- `gauge` — Non-completed terminal callback ratio
+- `text` — How to read Angie health
+**Sessions & callbacks**
+
+- `timeseries` — Claude callback requests
+- `timeseries` — Callback worker outcomes
+- `timeseries` — Angie workflow span rate
+- `timeseries` — Angie workflow p95 latency
+- `timeseries` — Terminal callback outcomes
+- `timeseries` — Master workflow activity
+**Angie storage**
+
+- `stat` — Provider attempt error ratio
+- `stat` — Failed archive calls / min
+- `stat` — Archive retries / min
+- `stat` — Archive provider p95
+- `gauge` — Successful archive attempts
+- `gauge` — Failed archive attempts
+- `timeseries` — Archive provider attempts
+- `timeseries` — Terminal transcript archive outcomes
+- `timeseries` — Archive provider p95 by outcome
+- `timeseries` — Attempted transcript bytes
+- `timeseries` — Archive failures by upstream status
+- `timeseries` — Archive retry and guard events
+- `logs` — Recent Angie storage and breaker logs
+**Summary pipeline**
+
+- `stat` — Summary status lookups
+- `stat` — Failed status lookups
+- `stat` — Rows read / lookup
+- `stat` — Lookup p95
+- `timeseries` — Status lookup outcomes
+- `timeseries` — Summary rows read rate
+- `timeseries` — Summary lookup p95 by outcome
+- `text` — What summary metrics prove
+**Failures & traces**
+
+- `logs` — Recent Angie warnings and errors
+- `table` — Failed Angie workflow traces
+- `timeseries` — Angie workflow span errors
+- `timeseries` — High-value Angie failure events
+
+### SOMA Angie — Claude Pool Status — `soma-angie-claude-pool` (25 panels)
+
+Per-account Claude 5-hour and 7-day usage/reset windows, scheduling eligibility, active/max capacity, cooldowns, sessions, API status, worker heartbeats, and runtime failures.
+
+**Pool status**
+
+- `stat` — Latest worker heartbeat
+- `stat` — Pool snapshots / 15m
+- `stat` — Minimum eligible accounts
+- `stat` — At-capacity accounts
+- `table` — Per-account Claude capacity — current state
+- `timeseries` — 5-hour usage by account
+- `timeseries` — 7-day usage by account
+- `timeseries` — Available session slots by account
+- `timeseries` — Pool cooldown remaining by account
+- `text` — Reading pool status
+**Sessions & API**
+
+- `stat` — Sessions started
+- `stat` — Sessions completed
+- `stat` — Sessions failed
+- `stat` — Pool rotations
+- `gauge` — Completed-session ratio
+- `gauge` — Pool API success ratio
+- `timeseries` — Session lifecycle
+- `timeseries` — Completed-session p95 duration
+- `timeseries` — Pool API requests by area and status
+- `timeseries` — Pool API p95 latency
+**Runtime & callbacks**
+
+- `timeseries` — Worker heartbeats
+- `timeseries` — Process lifecycle
+- `timeseries` — Callback delivery outcomes
+- `timeseries` — Account rotations
+- `logs` — Recent pool warnings and errors
 
 ### SOMA Engineering — `soma-engineering` (35 panels)
 
@@ -146,7 +238,7 @@ Webhook receipt and processing. Single page on purpose: an operator dashboard sh
 
 - `text` — How to read this dashboard
 
-### SOMA Storage Observability — `soma-storage-observability` (13 panels)
+### SOMA Storage Observability — `soma-storage-observability` (15 panels)
 
 Provider-attempt health, traffic, latency, retries, safe failure logs, and traces for Soma's storage boundaries. Ratios are attempts, not unique workflows.
 
@@ -156,6 +248,8 @@ Provider-attempt health, traffic, latency, retries, safe failure logs, and trace
 - `stat` — Failed provider calls / min
 - `stat` — Retries / min
 - `stat` — P95 provider-call latency
+- `gauge` — Successful provider attempts
+- `gauge` — Failed provider attempts
 - `text` — How to read storage health
 **Traffic & latency**
 
