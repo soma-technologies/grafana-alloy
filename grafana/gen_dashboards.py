@@ -22,11 +22,11 @@ import sys
 HERE = pathlib.Path(__file__).parent
 REGISTRY = HERE / "registry.json"
 
-STATUS_ORDER = ["managed", "adopt", "retire", "stock"]
+STATUS_ORDER = ["managed", "keep", "archive", "stock"]
 STATUS_LABEL = {
     "managed": "Managed in this repo",
-    "adopt": "SOMA-specific — adopt into this repo",
-    "retire": "Safe to delete",
+    "keep": "Kept as is — live, useful, deliberately not generated here",
+    "archive": "Archived — kept for reference, not maintained",
     "stock": "Grafana Cloud stock / integration — leave alone",
 }
 
@@ -216,7 +216,7 @@ def main() -> int:
             print()
             print(entry["note"])
             print()
-            if status != "stock" and found:
+            if status in ("managed", "keep") and found:
                 section = None
                 for sec, title, viz in found:
                     if sec != section:

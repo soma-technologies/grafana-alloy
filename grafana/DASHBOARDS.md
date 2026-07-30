@@ -14,11 +14,11 @@ No drift: every live dashboard is registered and every registered dashboard is l
 | SOMA Engineering | `soma-engineering` | managed | engineers | 35 | `gen_soma_engineering_dashboard.py` |
 | SOMA Operations | `soma-operations` | managed | operators | 16 | `gen_soma_operations_dashboard.py` |
 | SOMA Workflow Health | `soma-workflow-health` | managed | operators | 47 | `gen_soma_workflow_health_dashboard.py` |
-| Supabase — Soma (corrected) | `soma-supabase` | adopt | engineers | 29 | — |
-| Soma APM | `a5b6pg` | retire | none | 5 | — |
-| Soma Metrics | `an29kk` | retire | engineers | 22 | — |
-| Soma OTel - Local Test Proof | `as5l5v` | retire | none | 1 | — |
-| Soma OTel Local Test Proof | `acn297` | retire | none | 2 | — |
+| Supabase — Soma (corrected) | `soma-supabase` | keep | engineers | 29 | — |
+| Soma APM | `a5b6pg` | archive | none | 5 | — |
+| Soma Metrics | `an29kk` | archive | engineers | 22 | — |
+| Soma OTel - Local Test Proof | `as5l5v` | archive | none | 1 | — |
+| Soma OTel Local Test Proof | `acn297` | archive | none | 2 | — |
 | Alert Groups Insights | `63093493-af68-4fdd-89e9-511c24d8352d` | stock | none | 17 | — |
 | Incident Insights | `6e19ccfc-2e2e-40d2-9d40-6890618ba164` | stock | none | 20 | — |
 | MacOS / logs | `darwin-logs` | stock | engineers | 5 | — |
@@ -209,11 +209,11 @@ One tab per business workflow, overview first. Adding a workflow adds 8 panels a
 - `timeseries` — Runs by service instance
 - `text` — Drill down
 
-## SOMA-specific — adopt into this repo
+## Kept as is — live, useful, deliberately not generated here
 
 ### Supabase — Soma (corrected) — `soma-supabase` (29 panels)
 
-Good curated USE coverage of Postgres and poolers, far better than the 127-panel stock integration board. Bring its generator into this repo.
+Curated USE coverage of Postgres and poolers, far better than the 127-panel stock integration board. Decision 2026-07-30: keep as is for now, not generated from this repo. Bring it in only when it next needs changing.
 
 **Overview — real health at a glance**
 
@@ -253,57 +253,23 @@ Good curated USE coverage of Postgres and poolers, far better than the 127-panel
 - `timeseries` — PgBouncer client wait time
 - `timeseries` — PostgREST pool
 
-## Safe to delete
+## Archived — kept for reference, not maintained
 
 ### Soma APM — `a5b6pg` (5 panels)
 
-Proof of concept, 5 panels.
-
-- `table` — Recent traces
-- `table` — Error traces
-- `table` — Slow traces (>1s)
-- `table` — Error logs
-- `logs` — All logs
+Proof of concept, 5 panels. Decision 2026-07-30: keep, archived.
 
 ### Soma Metrics — `an29kk` (22 panels)
 
-Superseded by soma-engineering. Its business tiles (Tivly leads, Quotes submitted, Submission flows) render 0 in green, which reads as healthy when the truth is not-measured. Retire or fix; do not leave as is.
-
-- `stat` — Active requests
-- `gauge` — P95 latency
-- `gauge` — 5xx rate
-- `stat` — Request rate
-- `stat` — Healthcheck rate
-- `stat` — Non-health rate
-- `timeseries` — Request rate by target
-- `timeseries` — 5xx rate by target
-- `timeseries` — P50 / P95 / P99 latency
-- `table` — Routes — volume, p95, 5xx %
-- `nodeGraph` — Service graph
-- `stat` — Downstream targets
-- `stat` — Inbound callers
-- `stat` — Slowest downstream p95
-- `stat` — Outbound HTTP 4xx/5xx rate
-- `stat` — Tivly leads — selected range
-- `stat` — Quotes submitted — selected range
-- `stat` — Submission flows — selected range
-- `stat` — Alloy self-scrape
-- `stat` — Alloy config valid
-- `gauge` — Exporter queue utilization
-- `timeseries` — Collector span throughput
+Superseded by soma-engineering. Its business tiles (Tivly leads, Quotes submitted, Submission flows) render 0 in green, which reads as healthy when the truth is not-measured — so do not use it for business questions. Decision 2026-07-30: keep, archived rather than deleted.
 
 ### Soma OTel - Local Test Proof — `as5l5v` (1 panels)
 
-Proof of concept, 1 panel.
-
-- `table` — Local test traces
+Proof of concept, 1 panel. Decision 2026-07-30: keep, archived.
 
 ### Soma OTel Local Test Proof — `acn297` (2 panels)
 
-Proof of concept, 2 panels.
-
-- `table` — Traces
-- `logs` — Logs
+Proof of concept, 2 panels. Decision 2026-07-30: keep, archived.
 
 ## Grafana Cloud stock / integration — leave alone
 

@@ -2,14 +2,14 @@
   "comment": [
     "The single source of truth for which Grafana dashboards exist and who owns them.",
     "publish.sh, gen_dashboards.py and the README all read this file. Add a dashboard",
-    "here and nowhere else. gen_dashboards.py reports anything live in Grafana that is",
-    "missing from this list, so drift surfaces instead of accumulating.",
+    "here and nowhere else. gen_dashboards.py reports anything that drifts from this",
+    "list \u2014 unregistered, missing, wrong folder, or managed without a tabbed layout.",
     "",
-    "Each entry records its folder and tags; gen_dashboards.py reports any that drift.",
+    "Each entry records its folder and tags.",
     "status:",
     "  managed   generated from this repo and published by publish.sh",
-    "  adopt     SOMA-specific, live, but not yet generated here",
-    "  retire    safe to delete; kept listed so the decision is recorded",
+    "  keep      live and useful, deliberately not generated here; decided, not pending",
+    "  archive   kept for reference, not maintained, not deleted; decided, not pending",
     "  stock     provisioned by Grafana Cloud or an integration; leave alone"
   ],
   "dashboards": [
@@ -57,10 +57,10 @@
     {
       "uid": "soma-supabase",
       "title": "Supabase \u2014 Soma (corrected)",
-      "status": "adopt",
+      "status": "keep",
       "generator": null,
       "audience": "engineers",
-      "note": "Good curated USE coverage of Postgres and poolers, far better than the 127-panel stock integration board. Bring its generator into this repo.",
+      "note": "Curated USE coverage of Postgres and poolers, far better than the 127-panel stock integration board. Decision 2026-07-30: keep as is for now, not generated from this repo. Bring it in only when it next needs changing.",
       "folder": "SOMA Engineering",
       "tags": [
         "database",
@@ -71,10 +71,10 @@
     {
       "uid": "a5b6pg",
       "title": "Soma APM",
-      "status": "retire",
+      "status": "archive",
       "generator": null,
       "audience": "none",
-      "note": "Proof of concept, 5 panels.",
+      "note": "Proof of concept, 5 panels. Decision 2026-07-30: keep, archived.",
       "folder": "SOMA Archive",
       "tags": [
         "archive",
@@ -85,10 +85,10 @@
     {
       "uid": "an29kk",
       "title": "Soma Metrics",
-      "status": "retire",
+      "status": "archive",
       "generator": null,
       "audience": "engineers",
-      "note": "Superseded by soma-engineering. Its business tiles (Tivly leads, Quotes submitted, Submission flows) render 0 in green, which reads as healthy when the truth is not-measured. Retire or fix; do not leave as is.",
+      "note": "Superseded by soma-engineering. Its business tiles (Tivly leads, Quotes submitted, Submission flows) render 0 in green, which reads as healthy when the truth is not-measured \u2014 so do not use it for business questions. Decision 2026-07-30: keep, archived rather than deleted.",
       "folder": "SOMA Archive",
       "tags": [
         "archive",
@@ -99,10 +99,10 @@
     {
       "uid": "as5l5v",
       "title": "Soma OTel - Local Test Proof",
-      "status": "retire",
+      "status": "archive",
       "generator": null,
       "audience": "none",
-      "note": "Proof of concept, 1 panel.",
+      "note": "Proof of concept, 1 panel. Decision 2026-07-30: keep, archived.",
       "folder": "SOMA Archive",
       "tags": [
         "archive",
@@ -113,10 +113,10 @@
     {
       "uid": "acn297",
       "title": "Soma OTel Local Test Proof",
-      "status": "retire",
+      "status": "archive",
       "generator": null,
       "audience": "none",
-      "note": "Proof of concept, 2 panels.",
+      "note": "Proof of concept, 2 panels. Decision 2026-07-30: keep, archived.",
       "folder": "SOMA Archive",
       "tags": [
         "archive",

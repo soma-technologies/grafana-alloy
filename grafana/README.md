@@ -54,9 +54,15 @@ dashboard, its status, panel count, and its panels. It also reports drift in bot
 directions, so a dashboard created in the UI and never registered shows up as a
 finding rather than a surprise.
 
-Statuses: `managed` (generated here), `adopt` (SOMA-specific, should be generated
-here), `retire` (safe to delete, decision recorded), `stock` (Grafana Cloud, leave
-alone).
+Statuses, all of them decided rather than pending:
+
+- `managed` — generated here and published by `publish.sh`
+- `keep` — live and useful, deliberately not generated here. `soma-supabase` sits
+  here: bring it in when it next needs changing, not before.
+- `archive` — kept for reference, not maintained, not deleted. The four boards in
+  **SOMA Archive**. `an29kk` is here because `soma-engineering` supersedes it, and
+  its business tiles render 0 in green — do not use it for business questions.
+- `stock` — Grafana Cloud or an integration owns it; leave alone.
 
 Add a dashboard to `registry.json` and nowhere else — `publish.sh` derives what to
 publish from it.
@@ -85,8 +91,9 @@ a fresh build would reintroduce as false alarms:
 - **Replication lag reads 0 when no replica exists.** Every lag panel is paired
   with "Replica attached" for exactly this reason.
 
-Worth doing instead: delete the three proof dashboards, decide `an29kk`'s fate
-against `soma-engineering`, and bring `soma-supabase` in here or retire it.
+Worth doing instead: extend what is here. The two open questions are settled —
+the archived boards are kept rather than deleted, and `soma-supabase` stays as is
+for now.
 
 ## Adding a dashboard
 
