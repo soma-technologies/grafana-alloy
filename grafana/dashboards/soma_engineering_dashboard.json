@@ -3,7 +3,7 @@
   "kind": "Dashboard",
   "metadata": {
     "annotations": {
-      "grafana.app/folder": "fwtfg9",
+      "grafana.app/folder": "eftnndsaxtvy8a",
       "grafana.app/message": "Create SOMA engineering diagnostics dashboard"
     },
     "name": "soma-engineering"
@@ -3449,8 +3449,7 @@
     "preload": false,
     "tags": [
       "soma",
-      "engineering",
-      "diagnostics"
+      "engineering"
     ],
     "timeSettings": {
       "autoRefresh": "1m",

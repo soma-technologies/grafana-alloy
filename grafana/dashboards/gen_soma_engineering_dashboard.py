@@ -842,7 +842,7 @@ dashboard = {
     "kind": "Dashboard",
     "metadata": {
         "annotations": {
-            "grafana.app/folder": "fwtfg9",
+            "grafana.app/folder": "eftnndsaxtvy8a",
             "grafana.app/message": "Create SOMA engineering diagnostics dashboard",
         },
         "name": "soma-engineering",
@@ -883,7 +883,7 @@ dashboard = {
         ],
         "liveNow": False,
         "preload": False,
-        "tags": ["soma", "engineering", "diagnostics"],
+        "tags": ["soma", "engineering"],
         "timeSettings": {
             "autoRefresh": "1m",
             "autoRefreshIntervals": ["30s", "1m", "5m", "15m", "30m", "1h"],

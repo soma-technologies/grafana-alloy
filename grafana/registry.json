@@ -1,0 +1,203 @@
+{
+  "comment": [
+    "The single source of truth for which Grafana dashboards exist and who owns them.",
+    "publish.sh, gen_dashboards.py and the README all read this file. Add a dashboard",
+    "here and nowhere else. gen_dashboards.py reports anything live in Grafana that is",
+    "missing from this list, so drift surfaces instead of accumulating.",
+    "",
+    "Each entry records its folder and tags; gen_dashboards.py reports any that drift.",
+    "status:",
+    "  managed   generated from this repo and published by publish.sh",
+    "  adopt     SOMA-specific, live, but not yet generated here",
+    "  retire    safe to delete; kept listed so the decision is recorded",
+    "  stock     provisioned by Grafana Cloud or an integration; leave alone"
+  ],
+  "dashboards": [
+    {
+      "uid": "soma-engineering",
+      "title": "SOMA Engineering",
+      "status": "managed",
+      "generator": "gen_soma_engineering_dashboard.py",
+      "audience": "engineers",
+      "note": "HTTP, routes, dependencies, workflow spans, database load, telemetry pipeline.",
+      "folder": "SOMA Engineering",
+      "tags": [
+        "engineering",
+        "soma"
+      ]
+    },
+    {
+      "uid": "soma-operations",
+      "title": "SOMA Operations",
+      "status": "managed",
+      "generator": "gen_soma_operations_dashboard.py",
+      "audience": "operators",
+      "note": "Webhook receipt and processing. Single page on purpose: an operator dashboard should hide nothing behind a tab.",
+      "folder": "SOMA Operations",
+      "tags": [
+        "operations",
+        "soma",
+        "webhooks"
+      ]
+    },
+    {
+      "uid": "soma-workflow-health",
+      "title": "SOMA Workflow Health",
+      "status": "managed",
+      "generator": "gen_soma_workflow_health_dashboard.py",
+      "audience": "operators",
+      "note": "One tab per business workflow, overview first. Adding a workflow adds 8 panels automatically.",
+      "folder": "SOMA Operations",
+      "tags": [
+        "operations",
+        "soma",
+        "workflows"
+      ]
+    },
+    {
+      "uid": "soma-supabase",
+      "title": "Supabase \u2014 Soma (corrected)",
+      "status": "adopt",
+      "generator": null,
+      "audience": "engineers",
+      "note": "Good curated USE coverage of Postgres and poolers, far better than the 127-panel stock integration board. Bring its generator into this repo.",
+      "folder": "SOMA Engineering",
+      "tags": [
+        "database",
+        "engineering",
+        "soma"
+      ]
+    },
+    {
+      "uid": "a5b6pg",
+      "title": "Soma APM",
+      "status": "retire",
+      "generator": null,
+      "audience": "none",
+      "note": "Proof of concept, 5 panels.",
+      "folder": "SOMA Archive",
+      "tags": [
+        "archive",
+        "proof",
+        "soma"
+      ]
+    },
+    {
+      "uid": "an29kk",
+      "title": "Soma Metrics",
+      "status": "retire",
+      "generator": null,
+      "audience": "engineers",
+      "note": "Superseded by soma-engineering. Its business tiles (Tivly leads, Quotes submitted, Submission flows) render 0 in green, which reads as healthy when the truth is not-measured. Retire or fix; do not leave as is.",
+      "folder": "SOMA Archive",
+      "tags": [
+        "archive",
+        "soma",
+        "superseded"
+      ]
+    },
+    {
+      "uid": "as5l5v",
+      "title": "Soma OTel - Local Test Proof",
+      "status": "retire",
+      "generator": null,
+      "audience": "none",
+      "note": "Proof of concept, 1 panel.",
+      "folder": "SOMA Archive",
+      "tags": [
+        "archive",
+        "proof",
+        "soma"
+      ]
+    },
+    {
+      "uid": "acn297",
+      "title": "Soma OTel Local Test Proof",
+      "status": "retire",
+      "generator": null,
+      "audience": "none",
+      "note": "Proof of concept, 2 panels.",
+      "folder": "SOMA Archive",
+      "tags": [
+        "archive",
+        "proof",
+        "soma"
+      ]
+    },
+    {
+      "uid": "63093493-af68-4fdd-89e9-511c24d8352d",
+      "title": "Alert Groups Insights",
+      "status": "stock",
+      "generator": null,
+      "audience": "none",
+      "note": "Grafana IRM. Renders empty until alerts fire and an incident process exists. Cannot be moved out of the root: Grafana rejects the write with \"Cannot save provisioned dashboard\".",
+      "folder": "ROOT (General)",
+      "tags": [
+        "alert groups",
+        "irm",
+        "oncall"
+      ]
+    },
+    {
+      "uid": "6e19ccfc-2e2e-40d2-9d40-6890618ba164",
+      "title": "Incident Insights",
+      "status": "stock",
+      "generator": null,
+      "audience": "none",
+      "note": "Grafana IRM. Renders empty until alerts fire and an incident process exists. Cannot be moved out of the root: Grafana rejects the write with \"Cannot save provisioned dashboard\".",
+      "folder": "ROOT (General)",
+      "tags": [
+        "grafana-incident",
+        "insights"
+      ]
+    },
+    {
+      "uid": "darwin-logs",
+      "title": "MacOS / logs",
+      "status": "stock",
+      "generator": null,
+      "audience": "engineers",
+      "note": "Logs from the Angie Mac host.",
+      "folder": "Angie Mac",
+      "tags": [
+        "macos-node-integration"
+      ]
+    },
+    {
+      "uid": "darwin-overview",
+      "title": "MacOS / overview",
+      "status": "stock",
+      "generator": null,
+      "audience": "engineers",
+      "note": "The Angie Mac host. Its node_* series are macOS volumes, so they do not describe Supabase's disk.",
+      "folder": "Angie Mac",
+      "tags": [
+        "macos-node-integration"
+      ]
+    },
+    {
+      "uid": "metricsendpoint-scrape-overview",
+      "title": "Metrics endpoint scrape overview",
+      "status": "stock",
+      "generator": null,
+      "audience": "engineers",
+      "note": "Scrape health for the Supabase metrics endpoint.",
+      "folder": "Integration - Supabase",
+      "tags": [
+        "supabase-integration"
+      ]
+    },
+    {
+      "uid": "d402d94e-da48-48e4-ac52-53026b96a000",
+      "title": "Supabase Project",
+      "status": "stock",
+      "generator": null,
+      "audience": "engineers",
+      "note": "Grafana Cloud Supabase integration, 127 panels, mostly generic node_exporter series. soma-supabase covers the same ground with 29 curated panels.",
+      "folder": "Integration - Supabase",
+      "tags": [
+        "supabase-integration"
+      ]
+    }
+  ]
+}

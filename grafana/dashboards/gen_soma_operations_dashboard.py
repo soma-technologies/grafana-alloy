@@ -578,18 +578,86 @@ def panel_element(raw_panel):
 
 
 elements = {f"panel-{item['id']}": panel_element(item) for item in panels}
-layout_items = [
+
+
+def grid_items(group):
+    """Lay a tab out on its own grid, with y offsets rebased to the top of the tab."""
+    top = min(item["gridPos"]["y"] for item in group)
+    return [
+        {
+            "kind": "GridLayoutItem",
+            "spec": {
+                "element": {"kind": "ElementReference", "name": f"panel-{item['id']}"},
+                "height": item["gridPos"]["h"],
+                "width": item["gridPos"]["w"],
+                "x": item["gridPos"]["x"],
+                "y": item["gridPos"]["y"] - top,
+            },
+        }
+        for item in group
+    ]
+
+
+def by_title(*titles):
+    wanted = {t.lower() for t in titles}
+    return [item for item in panels if item["title"].lower() in wanted]
+
+
+# The operator's answer stays on the first tab, so nothing actionable hides
+# behind a click.
+TABS = [
+    (
+        "Action queue",
+        by_title(
+            "Acknowledged",
+            "Ingress exception rate",
+            "Processing failures",
+            "Processing retries",
+            "Action queue — ingress",
+            "Action queue — processing",
+            "Action queue — no observed traffic",
+        ),
+    ),
+    (
+        "Sources",
+        by_title(
+            "Workflow health — observed sources",
+            "Webhook acknowledgements by source",
+            "Processing outcomes by source",
+        ),
+    ),
+    (
+        "Latency and volume",
+        by_title(
+            "Webhook acknowledgement p95",
+            "Processing p95",
+            "Acknowledgement data out",
+        ),
+    ),
+    (
+        "Dependencies",
+        by_title(
+            "Raw dependency span errors — diagnostic only",
+            "Production service graph",
+        ),
+    ),
+    ("How to read", by_title("How to read this dashboard")),
+]
+
+_placed = sum(len(group) for _, group in TABS)
+if _placed != len(panels):
+    missing = [p["title"] for p in panels if not any(p in g for _, g in TABS)]
+    raise SystemExit(f"{len(panels) - _placed} panel(s) not assigned to a tab: {missing}")
+
+tabs = [
     {
-        "kind": "GridLayoutItem",
+        "kind": "TabsLayoutTab",
         "spec": {
-            "element": {"kind": "ElementReference", "name": f"panel-{item['id']}"},
-            "height": item["gridPos"]["h"],
-            "width": item["gridPos"]["w"],
-            "x": item["gridPos"]["x"],
-            "y": item["gridPos"]["y"],
+            "title": title,
+            "layout": {"kind": "GridLayout", "spec": {"items": grid_items(group)}},
         },
     }
-    for item in panels
+    for title, group in TABS
 ]
 
 
@@ -628,7 +696,7 @@ dashboard = {
         "description": "Product and operations view of webhook receipt, processing, dependencies, and observability gaps.",
         "editable": True,
         "elements": elements,
-        "layout": {"kind": "GridLayout", "spec": {"items": layout_items}},
+        "layout": {"kind": "TabsLayout", "spec": {"tabs": tabs}},
         "links": [
             {
                 "title": "Engineering diagnostics — Soma Metrics",
@@ -645,7 +713,7 @@ dashboard = {
         ],
         "liveNow": False,
         "preload": False,
-        "tags": ["soma", "operations", "product", "webhooks"],
+        "tags": ["soma", "operations", "webhooks"],
         "timeSettings": {
             "autoRefresh": "30s",
             "autoRefreshIntervals": ["30s", "1m", "5m", "15m", "30m", "1h"],

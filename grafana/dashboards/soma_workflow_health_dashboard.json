@@ -4254,8 +4254,7 @@
     "tags": [
       "soma",
       "operations",
-      "workflows",
-      "traces"
+      "workflows"
     ],
     "timeSettings": {
       "autoRefresh": "1m",

@@ -14,10 +14,21 @@ cd "$repo_root"
 
 : "${GCX_CONFIG:?set GCX_CONFIG, e.g. ~/.config/gcx/soma-config.yaml}"
 
-dashboards=(soma_operations soma_workflow_health soma_engineering)
+# The registry is the only place the dashboard list lives.
+mapfile -t dashboards < <(
+  python3 -c "
+import json, pathlib
+registry = json.loads(pathlib.Path('grafana/registry.json').read_text())['dashboards']
+for entry in registry:
+    if entry['status'] == 'managed':
+        print(entry['generator'].removeprefix('gen_').removesuffix('_dashboard.py'))
+"
+)
 if [[ $# -gt 0 ]]; then
   dashboards=("$@")
 fi
+
+echo "publishing: ${dashboards[*]}"
 
 snapshots="grafana/dashboards/snapshots"
 mkdir -p "$snapshots"

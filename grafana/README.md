@@ -12,10 +12,12 @@ edits a dashboard in the browser, the next publish overwrites it.
 
 ```
 grafana/
-  dashboards/   generator per dashboard + its generated JSON
-  alerts/       alert rule definitions (Grafana provisioning format)
-  METRICS.md    generated inventory of every metric available
-  publish.sh    generate -> validate -> push -> snapshot
+  registry.json   the dashboard list — hand-maintained, read by everything else
+  dashboards/     generator per dashboard + its generated JSON
+  alerts/         alert rule definitions (Grafana provisioning format)
+  DASHBOARDS.md   generated: registry joined against live Grafana, plus drift
+  METRICS.md      generated: every metric available, by origin, with cardinality
+  publish.sh      generate -> validate -> push -> snapshot
 ```
 
 ## Publishing
@@ -43,26 +45,21 @@ done
 
 ## What is live
 
-Managed here:
+`registry.json` is the single source of truth for which dashboards exist and who
+owns them. It used to be written out in four places — this README, the publish
+script, the inventory generator, and the handoff doc — and they drifted.
 
-| UID | Title | Audience |
-|---|---|---|
-| `soma-operations` | SOMA Operations | Operators: webhook receipt and processing |
-| `soma-workflow-health` | SOMA Workflow Health | Operators: per-workflow, one tab per workflow |
-| `soma-engineering` | SOMA Engineering | Engineers: HTTP, routes, dependencies, workflow spans, database load, telemetry pipeline |
+Read the generated **[DASHBOARDS.md](DASHBOARDS.md)** for the current list: every
+dashboard, its status, panel count, and its panels. It also reports drift in both
+directions, so a dashboard created in the UI and never registered shows up as a
+finding rather than a surprise.
 
-Live but **not yet** managed here:
+Statuses: `managed` (generated here), `adopt` (SOMA-specific, should be generated
+here), `retire` (safe to delete, decision recorded), `stock` (Grafana Cloud, leave
+alone).
 
-| UID | Title | Note |
-|---|---|---|
-| `an29kk` | Soma Metrics | Largely superseded by `soma-engineering`. Its business-outcome tiles render 0 in green, which reads as healthy when the truth is not-measured. |
-| `soma-supabase` | Supabase — Soma (corrected) | Solid USE coverage. Overlaps the Grafana Cloud `Supabase Project` integration dashboard. |
-
-Leftover proof-of-concept dashboards, safe to delete (8 panels total):
-`a5b6pg` Soma APM, `acn297` Soma OTel Local Test Proof, `as5l5v` Soma OTel - Local Test Proof.
-
-`darwin-*` and the integration dashboards (`Supabase Project`, `Metrics endpoint
-scrape overview`, insights) are provisioned by Grafana Cloud — leave them alone.
+Add a dashboard to `registry.json` and nowhere else — `publish.sh` derives what to
+publish from it.
 
 ## On rebuilding from scratch
 
@@ -95,9 +92,11 @@ against `soma-engineering`, and bring `soma-supabase` in here or retire it.
 
 1. Copy the closest existing generator. They share the same helpers — `stat`,
    `timeseries`, `table`, `text_panel` — and the same Grafana v2 resource envelope.
-2. Use `TabsLayout` when the dashboard has more than about 20 panels; keep the
-   operator-facing overview on the first tab so nothing important hides behind a
-   click.
+2. **Use `TabsLayout`. Always** — this is a house rule, not a size threshold. Put
+   the answer on the first tab, since that is the one open by default: on
+   `soma-operations` that is the action queue. `gen_dashboards.py` reports any
+   managed dashboard that is not tabbed as drift, so a `GridLayout` cannot merge
+   unnoticed.
 3. Give every panel a description that says what it does *not* prove. The
    acknowledgement panels do not prove the business action completed, and saying so
    in the panel is what stops someone reading them as an SLI.
