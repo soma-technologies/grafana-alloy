@@ -351,6 +351,120 @@ workflow["fieldConfig"]["overrides"] = [
 panels.append(workflow)
 
 
+# Capacity is based on inbound requests only. Processing events are excluded
+# because one accepted webhook can fan out into several processing operations,
+# which would overstate the volume sent through an event-delivery service.
+panels.extend(
+    [
+        stat(
+            "Ingress events",
+            0,
+            f'sum(increase(soma_webhook_requests_total{{{source_filter}}}[$__range])) or vector(0)',
+            "All inbound webhook requests observed in the selected range, including accepted and rejected requests.",
+            thresholds=[{"color": "text"}],
+        ),
+        stat(
+            "Average events/day",
+            6,
+            f'86400 * (sum(increase(soma_webhook_requests_total{{{source_filter}}}[$__range])) or vector(0)) / $__range_s',
+            "Selected-range ingress normalized to a 24-hour daily rate. Use a representative business window for capacity planning.",
+            thresholds=[{"color": "text"}],
+        ),
+        stat(
+            "30-day projection",
+            12,
+            f'30 * 86400 * (sum(increase(soma_webhook_requests_total{{{source_filter}}}[$__range])) or vector(0)) / $__range_s',
+            "Linear 30-day projection from the selected range. This estimates Svix messages, not endpoint delivery attempts or retries.",
+            decimals=2,
+            thresholds=[{"color": "text"}],
+        ),
+        stat(
+            "Peak events/min",
+            18,
+            f'max_over_time((sum(rate(soma_webhook_requests_total{{{source_filter}}}[5m])) * 60)[$__range:5m]) or vector(0)',
+            "Highest five-minute rolling ingress rate in the selected range, expressed as events per minute.",
+            unit="reqpm",
+            decimals=1,
+            thresholds=[{"color": "text"}],
+        ),
+    ]
+)
+
+
+panels.append(
+    timeseries(
+        "Ingress rate by source",
+        0,
+        4,
+        12,
+        [
+            target(
+                f'sum by (source) (rate(soma_webhook_requests_total{{{source_filter}}}[$__rate_interval]))',
+                "{{source}}",
+            )
+        ],
+        "Inbound request rate used for delivery-plane capacity planning. Includes all acknowledgement outcomes.",
+        "reqps",
+    )
+)
+
+
+sizing = table(
+    "Ingress sizing by source",
+    12,
+    4,
+    12,
+    8,
+    [
+        target(
+            f'sum by (source) (increase(soma_webhook_requests_total{{{source_filter}}}[$__range]))',
+            ref="A",
+            instant=True,
+        ),
+        target(
+            f'86400 * sum by (source) (increase(soma_webhook_requests_total{{{source_filter}}}[$__range])) / $__range_s',
+            ref="B",
+            instant=True,
+        ),
+        target(
+            f'30 * 86400 * sum by (source) (increase(soma_webhook_requests_total{{{source_filter}}}[$__range])) / $__range_s',
+            ref="C",
+            instant=True,
+        ),
+        target(
+            f'100 * sum by (source) (increase(soma_webhook_requests_total{{{source_filter}}}[$__range])) / scalar(clamp_min(sum(increase(soma_webhook_requests_total{{{source_filter}}}[$__range])), 1))',
+            ref="D",
+            instant=True,
+        ),
+    ],
+    "Observed ingress and linear projections by source. Projections describe messages entering Svix; endpoint fan-out and retries are separate delivery attempts.",
+)
+sizing["transformations"] = [
+    {"id": "joinByField", "options": {"byField": "source", "mode": "outer"}},
+    {
+        "id": "organize",
+        "options": {
+            "excludeByName": {f"Time {index}": True for index in range(1, 5)},
+            "renameByName": {
+                "source": "Source",
+                "Value #A": "Observed",
+                "Value #B": "Events/day",
+                "Value #C": "30-day projection",
+                "Value #D": "Share",
+            },
+        },
+    },
+]
+sizing["fieldConfig"]["overrides"] = [
+    field_override("Observed", [{"id": "decimals", "value": 0}]),
+    field_override("Events/day", [{"id": "decimals", "value": 0}]),
+    field_override("30-day projection", [{"id": "decimals", "value": 0}]),
+    field_override("Share", [{"id": "unit", "value": "percent"}, {"id": "decimals", "value": 1}]),
+]
+sizing["options"]["sortBy"] = [{"displayName": "Observed", "desc": True}]
+panels.append(sizing)
+
+
 panels.extend(
     [
         timeseries(
@@ -374,7 +488,7 @@ panels.extend(
         timeseries(
             "Webhook acknowledgement p95",
             0,
-            30,
+            12,
             8,
             [
                 target(
@@ -388,7 +502,7 @@ panels.extend(
         timeseries(
             "Processing p95",
             8,
-            30,
+            12,
             8,
             [
                 target(
@@ -402,7 +516,7 @@ panels.extend(
         timeseries(
             "Acknowledgement data out",
             16,
-            30,
+            12,
             8,
             [target(f'sum by (source) (rate(soma_webhook_response_bytes_total{{{source_filter}}}[$__rate_interval]))', "{{source}}")],
             "Bytes per second returned in webhook acknowledgements. Request-body/data-in bytes are not instrumented yet.",
@@ -629,8 +743,14 @@ TABS = [
         ),
     ),
     (
-        "Latency and volume",
+        "Capacity and latency",
         by_title(
+            "Ingress events",
+            "Average events/day",
+            "30-day projection",
+            "Peak events/min",
+            "Ingress rate by source",
+            "Ingress sizing by source",
             "Webhook acknowledgement p95",
             "Processing p95",
             "Acknowledgement data out",
@@ -669,7 +789,7 @@ dashboard = {
     "metadata": {
         "annotations": {
             "grafana.app/folder": "fwtfg9",
-            "grafana.app/message": "Create SOMA product and operations workflow dashboard",
+            "grafana.app/message": "Add webhook capacity and Svix sizing to SOMA Operations",
         },
         "name": "soma-operations",
     },
@@ -695,7 +815,7 @@ dashboard = {
             }
         ],
         "cursorSync": "Off",
-        "description": "Product and operations view of webhook receipt, processing, dependencies, and observability gaps.",
+        "description": "Product and operations view of webhook receipt, delivery-plane capacity, processing, dependencies, and observability gaps.",
         "editable": True,
         "elements": elements,
         "layout": {"kind": "TabsLayout", "spec": {"tabs": tabs}},
