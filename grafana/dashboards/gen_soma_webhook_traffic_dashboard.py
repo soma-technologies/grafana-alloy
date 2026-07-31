@@ -22,6 +22,60 @@ SOURCES = [
     "railway",
 ]
 
+# Slack CLI workspace snapshot, refreshed 2026-07-31. The dashboard always keeps
+# the immutable channel ID beside the mutable human-readable name.
+SLACK_CHANNEL_NAMES = {
+    "C09910Q086S": "testing-temporary",
+    "C0998AD8WGL": "sales",
+    "C099M99SX47": "engineering",
+    "C099T19N25N": "all-soma",
+    "C099T19PBEC": "social",
+    "C09C24CQXS8": "soma-insure-day-ai",
+    "C09DELX93M2": "team-soma-devin-support",
+    "C09EGGQ8B60": "readings",
+    "C09PP032J00": "leads-and-partnerships",
+    "C09T12YFWTD": "placements-admin",
+    "C0AAUPUH3U4": "campaign-logs",
+    "C0ABN44ETGT": "changelog",
+    "C0AC00EQUJK": "wins",
+    "C0ADJBCEV3P": "markets",
+    "C0AEBCR9GJC": "accord-submission",
+    "C0AELB252BV": "angie",
+    "C0AFZ3HEVS9": "angie-sec",
+    "C0AKGFYPJM8": "angie-match-logs",
+    "C0AL9PBV92P": "customer-love-and-feedback",
+    "C0AN2S0BQDT": "approvals",
+    "C0AP61D1HQF": "lavish-email",
+    "C0AQEHCHXS7": "vorflux-somainsure",
+    "C0AR2AVFV53": "shitposting",
+    "C0ARPT5HC3W": "hunting",
+    "C0AS2D2E538": "simons-pipeline",
+    "C0AUNPC6F2N": "insights",
+    "C0AVBH62CBW": "angie-session-logs",
+    "C0B5GAPBX50": "task-master",
+    "C0B63G0U2MP": "engineering-alerts",
+    "C0B7C1JE4JU": "closing-calls",
+    "C0B7L0L6MQX": "angie-work",
+    "C0B7ZESRTPY": "town-square",
+    "C0BCRRZ999V": "angie-pranav",
+    "C0BDN779EHY": "instant-quoting-insights",
+    "C0BDU32S9HN": "test-angie-preet-7986",
+    "C0BDYDPHPRR": "vorflux-unfurl-16308-3",
+    "C0BE2LJBG0N": "vorflux-unfurl-16188-3",
+    "C0BEJEK1R3R": "sales-onboarding",
+    "C0BEKRMKY4S": "text-leads",
+    "C0BF058UU7Q": "bugs",
+    "C0BFP2X1JCF": "daycare-submission",
+    "C0BFUPP2RB6": "daycare-intake",
+    "C0BH2QDGWKT": "customer-servicing",
+    "C0BHFD1LF28": "food",
+    "C0BHSSB2TMH": "zzzz-angie",
+    "C0BHUUSJ4EA": "daycare-insights",
+    "C0BJFBJH1K8": "loma-test",
+    "C0BJX4G5WLT": "desk-submissions",
+    "C0BKUSS435Z": "angie-parv",
+}
+
 _panel_id = 0
 
 
@@ -225,6 +279,20 @@ def field_override(name: str, properties: list[dict]) -> dict:
     return {"matcher": {"id": "byName", "options": name}, "properties": properties}
 
 
+SLACK_CHANNEL_VALUE_MAPPING = {
+    "id": "mappings",
+    "value": [
+        {
+            "type": "value",
+            "options": {
+                channel_id: {"text": f"{channel_name} · {channel_id}", "index": index}
+                for index, (channel_id, channel_name) in enumerate(SLACK_CHANNEL_NAMES.items())
+            },
+        }
+    ],
+}
+
+
 SOURCE_FILTER = 'source=~"$source"'
 TOTAL_INGRESS = f'sum(increase(soma_webhook_requests_total{{{SOURCE_FILTER}}}[$__range]))'
 SLACK_CLASSIFIED = 'sum(increase(soma_slack_events_total[$__range]))'
@@ -396,7 +464,7 @@ evidence_panels = [
         4,
         24,
         4,
-        "This is the best historical evidence available before the new classifier is deployed. It proves how many messages were stored, routed outside sales, matched to sales threads, and accepted as Angie mentions. It cannot explain every filtered Slack event, so do not treat the remainder as a specific filter category.",
+        "This is the best historical evidence available before the new classifier is deployed. It proves how many messages were stored, routed outside sales, matched to sales threads, and accepted as Angie mentions. Channel names use the 2026-07-31 Slack CLI snapshot and retain the exact ID. It cannot explain every filtered Slack event, so do not treat the remainder as a specific filter category.",
     ),
 ]
 
@@ -413,7 +481,7 @@ stored_channel_table = table(
             datasource=LOKI,
         )
     ],
-    "Exact stored-message count per channel in retained logs. Channel IDs without configured aliases remain raw.",
+    "Exact stored-message count per channel in retained logs. Names come from the 2026-07-31 Slack CLI snapshot; the stable channel ID is always retained.",
     datasource=LOKI,
 )
 stored_channel_table["transformations"] = [
@@ -422,13 +490,14 @@ stored_channel_table["transformations"] = [
         "options": {
             "excludeByName": {"Time": True},
             "renameByName": {
-                "channel": "Channel ID",
+                "channel": "Slack channel",
                 "Value #A": "Stored interactions",
             },
         },
     }
 ]
 stored_channel_table["fieldConfig"]["overrides"] = [
+    field_override("Slack channel", [SLACK_CHANNEL_VALUE_MAPPING]),
     field_override("Stored interactions", [{"id": "decimals", "value": 0}])
 ]
 stored_channel_table["options"]["sortBy"] = [
@@ -536,7 +605,7 @@ channel_table = table(
             instant=True,
         ),
     ],
-    "Per-channel volume and current utility. Unknown channels remain visible by Slack channel ID.",
+    "Per-channel volume and current utility. Every mapped name retains its Slack channel ID; new IDs appear as unknown until the CLI snapshot is refreshed.",
 )
 channel_table["transformations"] = [
     {"id": "joinByField", "options": {"byField": "channel", "mode": "outer"}},
@@ -545,7 +614,7 @@ channel_table["transformations"] = [
         "options": {
             "excludeByName": {f"Time {i}": True for i in range(1, 7)},
             "renameByName": {
-                "channel": "Channel",
+                "channel": "Slack channel",
                 "Value #A": "Events",
                 "Value #B": "Slack share",
                 "Value #C": "Direct",
@@ -557,6 +626,7 @@ channel_table["transformations"] = [
     },
 ]
 channel_table["fieldConfig"]["overrides"] = [
+    field_override("Slack channel", [{"id": "custom.width", "value": 280}]),
     field_override("Events", [{"id": "decimals", "value": 0}]),
     field_override("Slack share", [{"id": "unit", "value": "percent"}, {"id": "decimals", "value": 1}]),
     field_override("Direct", [{"id": "decimals", "value": 0}]),
@@ -734,7 +804,7 @@ reading_panels = [
         0,
         24,
         14,
-        "### Questions this view answers\n\n1. **Traffic:** Which webhook source owns what percentage of ingress?\n2. **Slack channels:** Which channels create Slack volume?\n3. **Utility:** What reaches a current business path, what is persisted without a matcher route, and what is filtered?\n4. **Action:** Which Slack subscriptions or channel memberships can be removed safely?\n\n### Trust boundary\n\n`Webhook requests` measure HTTP receipts. `Slack events` measure valid payloads classified after signature verification. Channel/disposition data did not exist before this instrumentation release, so historical source totals and Slack breakdowns have different coverage. Trust Slack percentages only when **Classification coverage** is at least 95%.\n\n### Payload privacy\n\nThe Slack metric contains only channel alias/ID, event type, bounded disposition, and utility. It never records message text, user identity, thread ID, event ID, or files.",
+        "### Questions this view answers\n\n1. **Traffic:** Which webhook source owns what percentage of ingress?\n2. **Slack channels:** Which named channels create Slack volume?\n3. **Utility:** What reaches a current business path, what is persisted without a matcher route, and what is filtered?\n4. **Action:** Which Slack subscriptions or channel memberships can be removed safely?\n\n### Channel identity\n\nChannel names use a versioned Slack CLI snapshot refreshed on **2026-07-31**. Every name is shown with its immutable `C0…` ID, so renames and stale mappings remain correlatable. New IDs appear as `unknown · C0…` in live metrics until the snapshot is refreshed.\n\n### Trust boundary\n\n`Webhook requests` measure HTTP receipts. `Slack events` measure valid payloads classified after signature verification. Channel/disposition data did not exist before this instrumentation release, so historical source totals and Slack breakdowns have different coverage. Trust Slack percentages only when **Classification coverage** is at least 95%.\n\n### Payload privacy\n\nThe Slack metric contains only channel name/ID, event type, bounded disposition, and utility. It never records message text, user identity, thread ID, event ID, or files.",
     )
 ]
 
