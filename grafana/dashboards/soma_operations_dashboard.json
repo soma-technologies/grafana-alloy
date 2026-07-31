@@ -4,7 +4,7 @@
   "metadata": {
     "annotations": {
       "grafana.app/folder": "fwtfg9",
-      "grafana.app/message": "Create SOMA product and operations workflow dashboard"
+      "grafana.app/message": "Add webhook capacity and Svix sizing to SOMA Operations"
     },
     "name": "soma-operations"
   },
@@ -34,7 +34,7 @@
       }
     ],
     "cursorSync": "Off",
-    "description": "Product and operations view of webhook receipt, processing, dependencies, and observability gaps.",
+    "description": "Product and operations view of webhook receipt, delivery-plane capacity, processing, dependencies, and observability gaps.",
     "editable": true,
     "elements": {
       "panel-1": {
@@ -1043,6 +1043,587 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
+                        "expr": "sum(increase(soma_webhook_requests_total{source=~\"$source\"}[$__range])) or vector(0)",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "All inbound webhook requests observed in the selected range, including accepted and rejected requests.",
+          "id": 9,
+          "links": [],
+          "title": "Ingress events",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short",
+                  "decimals": 0,
+                  "noValue": "No telemetry",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "none"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-10": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "86400 * (sum(increase(soma_webhook_requests_total{source=~\"$source\"}[$__range])) or vector(0)) / $__range_s",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Selected-range ingress normalized to a 24-hour daily rate. Use a representative business window for capacity planning.",
+          "id": 10,
+          "links": [],
+          "title": "Average events/day",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short",
+                  "decimals": 0,
+                  "noValue": "No telemetry",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "none"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-11": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "30 * 86400 * (sum(increase(soma_webhook_requests_total{source=~\"$source\"}[$__range])) or vector(0)) / $__range_s",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Linear 30-day projection from the selected range. This estimates Svix messages, not endpoint delivery attempts or retries.",
+          "id": 11,
+          "links": [],
+          "title": "30-day projection",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short",
+                  "decimals": 2,
+                  "noValue": "No telemetry",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "none"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-12": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "max_over_time((sum(rate(soma_webhook_requests_total{source=~\"$source\"}[5m])) * 60)[$__range:5m]) or vector(0)",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Highest five-minute rolling ingress rate in the selected range, expressed as events per minute.",
+          "id": 12,
+          "links": [],
+          "title": "Peak events/min",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "reqpm",
+                  "decimals": 1,
+                  "noValue": "No telemetry",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "none"
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-13": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum by (source) (rate(soma_webhook_requests_total{source=~\"$source\"}[$__rate_interval]))",
+                        "range": true,
+                        "legendFormat": "{{source}}"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Inbound request rate used for delivery-plane capacity planning. Includes all acknowledgement outcomes.",
+          "id": 13,
+          "links": [],
+          "title": "Ingress rate by source",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "reqps",
+                  "custom": {
+                    "lineWidth": 2,
+                    "fillOpacity": 12,
+                    "gradientMode": "opacity",
+                    "showPoints": "never"
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "table",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-14": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum by (source) (increase(soma_webhook_requests_total{source=~\"$source\"}[$__range]))",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "86400 * sum by (source) (increase(soma_webhook_requests_total{source=~\"$source\"}[$__range])) / $__range_s",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "B"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "30 * 86400 * sum by (source) (increase(soma_webhook_requests_total{source=~\"$source\"}[$__range])) / $__range_s",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "C"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "100 * sum by (source) (increase(soma_webhook_requests_total{source=~\"$source\"}[$__range])) / scalar(clamp_min(sum(increase(soma_webhook_requests_total{source=~\"$source\"}[$__range])), 1))",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "D"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": [
+                {
+                  "group": "joinByField",
+                  "kind": "Transformation",
+                  "spec": {
+                    "options": {
+                      "byField": "source",
+                      "mode": "outer"
+                    }
+                  }
+                },
+                {
+                  "group": "organize",
+                  "kind": "Transformation",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {
+                        "Time 1": true,
+                        "Time 2": true,
+                        "Time 3": true,
+                        "Time 4": true
+                      },
+                      "renameByName": {
+                        "source": "Source",
+                        "Value #A": "Observed",
+                        "Value #B": "Events/day",
+                        "Value #C": "30-day projection",
+                        "Value #D": "Share"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "description": "Observed ingress and linear projections by source. Projections describe messages entering Svix; endpoint fan-out and retries are separate delivery attempts.",
+          "id": 14,
+          "links": [],
+          "title": "Ingress sizing by source",
+          "vizConfig": {
+            "group": "table",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Observed"
+                    },
+                    "properties": [
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Events/day"
+                    },
+                    "properties": [
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "30-day projection"
+                    },
+                    "properties": [
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Share"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "percent"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 1
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "showHeader": true,
+                "cellHeight": "sm",
+                "sortBy": [
+                  {
+                    "displayName": "Observed",
+                    "desc": true
+                  }
+                ]
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-15": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
                         "expr": "sum by (source) (rate(soma_webhook_requests_total{source=~\"$source\", outcome=\"accepted\"}[$__rate_interval]))",
                         "range": true,
                         "legendFormat": "{{source}}"
@@ -1058,7 +1639,7 @@
             }
           },
           "description": "Rate of successfully acknowledged inbound webhook requests.",
-          "id": 9,
+          "id": 15,
           "links": [],
           "title": "Webhook acknowledgements by source",
           "vizConfig": {
@@ -1093,7 +1674,7 @@
           }
         }
       },
-      "panel-10": {
+      "panel-16": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -1127,7 +1708,7 @@
             }
           },
           "description": "Recorded post-receipt processing events. Retry and failed series should trigger investigation.",
-          "id": 10,
+          "id": 16,
           "links": [],
           "title": "Processing outcomes by source",
           "vizConfig": {
@@ -1162,7 +1743,7 @@
           }
         }
       },
-      "panel-11": {
+      "panel-17": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -1196,7 +1777,7 @@
             }
           },
           "description": "P95 time to return the webhook acknowledgement. This is not end-to-end business completion latency.",
-          "id": 11,
+          "id": 17,
           "links": [],
           "title": "Webhook acknowledgement p95",
           "vizConfig": {
@@ -1231,7 +1812,7 @@
           }
         }
       },
-      "panel-12": {
+      "panel-18": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -1265,7 +1846,7 @@
             }
           },
           "description": "P95 duration of instrumented post-receipt processing operations.",
-          "id": 12,
+          "id": 18,
           "links": [],
           "title": "Processing p95",
           "vizConfig": {
@@ -1300,7 +1881,7 @@
           }
         }
       },
-      "panel-13": {
+      "panel-19": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -1334,7 +1915,7 @@
             }
           },
           "description": "Bytes per second returned in webhook acknowledgements. Request-body/data-in bytes are not instrumented yet.",
-          "id": 13,
+          "id": 19,
           "links": [],
           "title": "Acknowledgement data out",
           "vizConfig": {
@@ -1369,7 +1950,7 @@
           }
         }
       },
-      "panel-14": {
+      "panel-20": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -1484,7 +2065,7 @@
             }
           },
           "description": "Raw OTel span-error percentage. This is not a business SLI: expected Angie transcript-not-ready 404 polling is currently counted as failure. Use traces before escalating.",
-          "id": 14,
+          "id": 20,
           "links": [],
           "title": "Raw dependency span errors \u2014 diagnostic only",
           "vizConfig": {
@@ -1563,7 +2144,7 @@
           }
         }
       },
-      "panel-15": {
+      "panel-21": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -1598,7 +2179,7 @@
             }
           },
           "description": "Observed production service-to-dependency paths. Queue handoffs are not connected across workers yet, so missing internal edges are a known tracing gap.",
-          "id": 15,
+          "id": 21,
           "links": [],
           "title": "Production service graph",
           "vizConfig": {
@@ -1615,7 +2196,7 @@
           }
         }
       },
-      "panel-16": {
+      "panel-22": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -1627,7 +2208,7 @@
             }
           },
           "description": "",
-          "id": 16,
+          "id": 22,
           "links": [],
           "title": "How to read this dashboard",
           "vizConfig": {
@@ -1782,7 +2363,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-9"
+                          "name": "panel-15"
                         },
                         "height": 8,
                         "width": 12,
@@ -1795,7 +2376,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-10"
+                          "name": "panel-16"
                         },
                         "height": 8,
                         "width": 12,
@@ -1811,7 +2392,7 @@
           {
             "kind": "TabsLayoutTab",
             "spec": {
-              "title": "Latency and volume",
+              "title": "Capacity and latency",
               "layout": {
                 "kind": "GridLayout",
                 "spec": {
@@ -1821,11 +2402,37 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
+                          "name": "panel-9"
+                        },
+                        "height": 4,
+                        "width": 6,
+                        "x": 0,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-10"
+                        },
+                        "height": 4,
+                        "width": 6,
+                        "x": 6,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
                           "name": "panel-11"
                         },
-                        "height": 8,
-                        "width": 8,
-                        "x": 0,
+                        "height": 4,
+                        "width": 6,
+                        "x": 12,
                         "y": 0
                       }
                     },
@@ -1836,9 +2443,9 @@
                           "kind": "ElementReference",
                           "name": "panel-12"
                         },
-                        "height": 8,
-                        "width": 8,
-                        "x": 8,
+                        "height": 4,
+                        "width": 6,
+                        "x": 18,
                         "y": 0
                       }
                     },
@@ -1850,9 +2457,61 @@
                           "name": "panel-13"
                         },
                         "height": 8,
+                        "width": 12,
+                        "x": 0,
+                        "y": 4
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-14"
+                        },
+                        "height": 8,
+                        "width": 12,
+                        "x": 12,
+                        "y": 4
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-17"
+                        },
+                        "height": 8,
+                        "width": 8,
+                        "x": 0,
+                        "y": 12
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-18"
+                        },
+                        "height": 8,
+                        "width": 8,
+                        "x": 8,
+                        "y": 12
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-19"
+                        },
+                        "height": 8,
                         "width": 8,
                         "x": 16,
-                        "y": 0
+                        "y": 12
                       }
                     }
                   ]
@@ -1873,7 +2532,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-14"
+                          "name": "panel-20"
                         },
                         "height": 9,
                         "width": 24,
@@ -1886,7 +2545,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-15"
+                          "name": "panel-21"
                         },
                         "height": 12,
                         "width": 24,
@@ -1912,7 +2571,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-16"
+                          "name": "panel-22"
                         },
                         "height": 8,
                         "width": 24,

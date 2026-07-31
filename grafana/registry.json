@@ -94,10 +94,25 @@
       "status": "managed",
       "generator": "gen_soma_operations_dashboard.py",
       "audience": "operators",
-      "note": "Webhook receipt and processing. Single page on purpose: an operator dashboard should hide nothing behind a tab.",
+      "note": "Webhook receipt, delivery-plane capacity and Svix sizing, processing outcomes, latency, dependencies, and source freshness.",
       "folder": "SOMA Operations",
       "tags": [
         "operations",
+        "soma",
+        "webhooks"
+      ]
+    },
+    {
+      "uid": "soma-webhook-traffic",
+      "title": "SOMA Webhook Traffic",
+      "status": "managed",
+      "generator": "gen_soma_webhook_traffic_dashboard.py",
+      "audience": "operators",
+      "note": "Webhook source percentages, exact volume and projections, Slack channel traffic, current utility/disposition evidence, coverage gaps, and delivery health.",
+      "folder": "SOMA Operations",
+      "tags": [
+        "operations",
+        "slack",
         "soma",
         "webhooks"
       ]
