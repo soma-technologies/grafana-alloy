@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Generate SOMA's Angie observability dashboard.
 
-The dashboard separates terminal callback proxies from provider attempts. Angie
-storage is intentionally first-class because transcript archival can fail while
-the underlying session still completes.
+The dashboard separates terminal callback proxies from storage operations. Its
+storage tab is also the release console for the shared storage gateway: backend
+and Angie keep their existing metric families, while the dashboard normalizes
+them into one bounded runtime dimension for direct-v1 versus gateway-v2 review.
 """
 
 import json
@@ -33,7 +34,6 @@ SUCCESS_STEPS = [
     {"color": "green", "value": 99},
 ]
 
-ARCHIVE = 'workflow="session_archive",logical_area="session_transcripts"'
 CALLBACK_LOGS = (
     '{service_name=~"soma-.+"} | json '
     '| event="claude_session_callback_processed"'
@@ -82,6 +82,7 @@ def stat(
     expr,
     description,
     *,
+    y=0,
     datasource=PROM,
     unit="short",
     decimals=1,
@@ -91,7 +92,7 @@ def stat(
         "stat",
         title,
         x,
-        0,
+        y,
         6,
         5,
         [target(expr, datasource=datasource, instant=True, queryType="instant")],
@@ -113,12 +114,12 @@ def stat(
     return result
 
 
-def gauge(title, x, expr, description, *, datasource=PROM, thresholds):
+def gauge(title, x, expr, description, *, y=5, datasource=PROM, thresholds):
     result = panel(
         "gauge",
         title,
         x,
-        5,
+        y,
         12,
         8,
         [target(expr, datasource=datasource, instant=True, queryType="instant")],
@@ -207,11 +208,11 @@ def text_panel(title, y, markdown):
     return result
 
 
-def logs_panel(title, y, expr, description, *, width=24):
+def logs_panel(title, y, expr, description, *, x=0, width=24):
     result = panel(
         "logs",
         title,
-        0,
+        x,
         y,
         width,
         11,
@@ -231,6 +232,31 @@ def logs_panel(title, y, expr, description, *, width=24):
         "wrapLogMessage": True,
     }
     return result
+
+
+def with_runtime(expr, runtime):
+    """Add a bounded runtime label without changing the application's schema."""
+    return (
+        f'label_replace(({expr}), "runtime", "{runtime}", '
+        '"runtime", "^$")'
+    )
+
+
+def storage_union(backend_expr, angie_expr):
+    """Combine the backend and Angie storage families for dashboard queries."""
+    return (
+        f"({with_runtime(backend_expr, 'backend')}) or "
+        f"({with_runtime(angie_expr, 'angie')})"
+    )
+
+
+def gateway_share(metric):
+    observed = f'sum(rate({metric}{{instrumentation=~"direct_v1|gateway_v2"}}[15m]))'
+    gateway = f'sum(rate({metric}{{instrumentation="gateway_v2"}}[15m]))'
+    return (
+        f"100 * (({gateway}) or ({observed}) * 0) "
+        f"/ clamp_min(({observed}), 1e-9)"
+    )
 
 
 def traces_panel():
@@ -398,75 +424,218 @@ sessions = [
     ),
 ]
 
+storage_attempt_rate = storage_union(
+    "rate(soma_storage_operations_total[$__rate_interval])",
+    "rate(angie_storage_operations_total[$__rate_interval])",
+)
+storage_error_rate = storage_union(
+    'rate(soma_storage_operations_total{outcome="error"}[$__rate_interval])',
+    'rate(angie_storage_operations_total{outcome="error"}[$__rate_interval])',
+)
+gateway_error_rate_5m = storage_union(
+    'rate(soma_storage_operations_total{instrumentation="gateway_v2",outcome="error"}[5m])',
+    'rate(angie_storage_operations_total{instrumentation="gateway_v2",outcome="error"}[5m])',
+)
+gateway_attempt_rate_5m = storage_union(
+    'rate(soma_storage_operations_total{instrumentation="gateway_v2"}[5m])',
+    'rate(angie_storage_operations_total{instrumentation="gateway_v2"}[5m])',
+)
+blocked_error_rate_5m = storage_union(
+    'rate(soma_storage_operations_total{instrumentation="gateway_v2",outcome="error",'
+    'error_class=~"forbidden|protocol"}[5m])',
+    'rate(angie_storage_operations_total{instrumentation="gateway_v2",outcome="error",'
+    'error_class=~"forbidden|protocol"}[5m])',
+)
+gateway_retry_rate_5m = storage_union(
+    'rate(soma_storage_events_total{instrumentation="gateway_v2",event="retry"}[5m])',
+    'rate(angie_storage_semantic_events_total{instrumentation="gateway_v2",event="retry"}[5m])',
+)
+storage_latency_p95 = storage_union(
+    "histogram_quantile(0.95, sum by (le, provider, instrumentation) "
+    "(rate(soma_storage_duration_milliseconds_bucket[$__rate_interval])))",
+    "1000 * histogram_quantile(0.95, sum by (le, provider, instrumentation) "
+    "(rate(angie_storage_operation_duration_seconds_bucket[$__rate_interval])))",
+)
+storage_semantic_rate = storage_union(
+    "rate(soma_storage_events_total[$__rate_interval])",
+    "rate(angie_storage_semantic_events_total[$__rate_interval])",
+)
+storage_bytes_rate = storage_union(
+    "rate(soma_storage_transfer_bytes_total[$__rate_interval])",
+    "rate(angie_storage_bytes_total[$__rate_interval])",
+)
+
 storage = [
-    stat(
-        "Provider attempt error ratio",
+    text_panel(
+        "Storage gateway rollout guide",
         0,
-        f"100 * sum(rate(soma_storage_errors_total{{{ARCHIVE}}}[5m])) / "
-        f"clamp_min(sum(rate(soma_storage_operations_total{{{ARCHIVE}}}[5m])), 1e-9)",
-        "Failed transcript-storage attempts divided by all attempts. Retries count again; this "
-        "is not the percentage of sessions whose transcript was lost.",
-        unit="percent",
-        thresholds=ERROR_STEPS,
+        "**`direct_v1` and `gateway_v2` identify instrumentation paths, not different metric "
+        "families.** Compare the same runtime, provider, workflow, and operation. Every observed "
+        "backend provider call or Angie logical action must appear under exactly one "
+        "instrumentation path; do not compare absolute volume across runtimes. Backend rollout "
+        "is `off` → `object_store` → `all`; enable "
+        "Angie only after backend is stable. Roll back the relevant flag if forbidden/protocol "
+        "failures appear, the gateway error ratio exceeds the larger of baseline +0.5 pp or "
+        "1.5× baseline, or P95 exceeds the larger of baseline +20% or +100 ms. Soak the first "
+        "backend slice for 2 hours and 100 operations, then each full rollout for 24 hours.",
     ),
     stat(
-        "Failed archive calls / min",
+        "Gateway failures / min",
+        0,
+        f"(sum({gateway_error_rate_5m}) or sum({gateway_attempt_rate_5m}) * 0) * 60",
+        "Failed gateway-v2 operations. Backend counts provider calls; Angie counts logical "
+        "actions and does not expand curl's internal retries. This is not a unique-workflow "
+        "failure count.",
+        y=7,
+        unit="opm",
+        thresholds=COUNT_STEPS,
+    ),
+    stat(
+        "Blocked classes / min",
         6,
-        f"sum(rate(soma_storage_errors_total{{{ARCHIVE}}}[5m])) * 60",
-        "Failed Supabase transcript archive attempts per minute.",
+        f"(sum({blocked_error_rate_5m}) or sum({gateway_attempt_rate_5m}) * 0) * 60",
+        "Gateway-v2 forbidden and protocol failures. Any nonzero value blocks the rollout.",
+        y=7,
         unit="opm",
         thresholds=COUNT_STEPS,
     ),
     stat(
-        "Archive retries / min",
+        "Gateway retries / min",
         12,
-        f'sum(rate(soma_storage_events_total{{event="retry",{ARCHIVE}}}[5m])) * 60',
-        "Retry events per minute. Compare with failures to identify retry amplification.",
+        f"(sum({gateway_retry_rate_5m}) or sum({gateway_attempt_rate_5m}) * 0) * 60",
+        "Gateway-v2 retry events across both runtimes. Compare with failures to detect retry "
+        "amplification.",
+        y=7,
         unit="opm",
         thresholds=COUNT_STEPS,
     ),
     stat(
-        "Archive provider p95",
+        "Angie observer drops / min",
         18,
-        "histogram_quantile(0.95, sum by (le) "
-        f"(rate(soma_storage_duration_milliseconds_bucket{{{ARCHIVE}}}[5m])))",
-        "P95 provider-attempt duration. Fast rejections can make this look artificially good.",
-        unit="ms",
-        decimals=0,
+        "(sum(rate(angie_storage_observability_dropped_events_total[5m])) or "
+        "sum(rate(angie_storage_operations_total[5m])) * 0) * 60",
+        "Storage observations the fail-open Angie datagram producer could not deliver. Missing "
+        "telemetry is a rollout blocker, not a healthy zero.",
+        y=7,
+        unit="opm",
+        thresholds=COUNT_STEPS,
     ),
     gauge(
-        "Successful archive attempts",
+        "Backend gateway-v2 traffic share",
         0,
-        "100 * sum(rate(soma_storage_operations_total{"
-        f'{ARCHIVE},outcome="success"}}[5m])) / clamp_min(sum(rate('
-        f"soma_storage_operations_total{{{ARCHIVE}}}[5m])), 1e-9)",
-        "Successful provider attempts as a share of attempts. Retries and snapshots count again.",
-        thresholds=SUCCESS_STEPS,
+        gateway_share("soma_storage_operations_total"),
+        "Share of recently observed backend provider calls emitted through gateway-v2. This is "
+        "rollout progress, not a health score, so it is deliberately uncoloured.",
+        y=12,
+        thresholds=NEUTRAL,
     ),
     gauge(
-        "Failed archive attempts",
+        "Angie gateway-v2 traffic share",
         12,
-        "100 * sum(rate(soma_storage_operations_total{"
-        f'{ARCHIVE},outcome="error"}}[5m])) / clamp_min(sum(rate('
-        f"soma_storage_operations_total{{{ARCHIVE}}}[5m])), 1e-9)",
-        "Failed provider attempts as a share of attempts, not unique sessions.",
-        thresholds=ERROR_STEPS,
+        gateway_share("angie_storage_operations_total"),
+        "Share of recently observed Angie logical actions emitted through gateway-v2. This is "
+        "rollout progress, not a health score, so it is deliberately uncoloured.",
+        y=12,
+        thresholds=NEUTRAL,
     ),
     timeseries(
-        "Archive provider attempts",
+        "Storage operations by runtime and instrumentation",
         0,
-        13,
-        f"sum by (operation, outcome) (rate(soma_storage_operations_total{{{ARCHIVE}}}"
-        "[$__rate_interval]))",
-        "{{operation}} · {{outcome}}",
-        "Supabase transcript archive attempts by operation and outcome.",
+        20,
+        "sum by (runtime, provider, instrumentation, workflow, operation, outcome) "
+        f"({storage_attempt_rate})",
+        "{{runtime}} · {{provider}} · {{instrumentation}} · {{workflow}} · {{operation}} · "
+        "{{outcome}}",
+        "Backend series count provider calls; Angie series count logical actions. Each observed "
+        "operation must appear under exactly one instrumentation path. Native-shell curl retries "
+        "remain inside one Angie action.",
         "ops",
         stack=True,
     ),
     timeseries(
-        "Terminal transcript archive outcomes",
+        "Attempt error ratio: direct-v1 vs gateway-v2",
         12,
-        13,
+        20,
+        "100 * ((sum by (runtime, provider, instrumentation) "
+        f"({storage_error_rate})) or (sum by (runtime, provider, instrumentation) "
+        f"({storage_attempt_rate}) * 0)) / clamp_min(sum by (runtime, provider, instrumentation) "
+        f"({storage_attempt_rate}), 1e-9)",
+        "{{runtime}} · {{provider}} · {{instrumentation}}",
+        "Within-runtime operation error ratio: backend provider calls and Angie logical actions. "
+        "Compare gateway with direct for the same runtime, provider, workflow, and operation; do "
+        "not compare the two runtimes as if they have identical counting semantics.",
+        "percent",
+        percent=True,
+    ),
+    timeseries(
+        "P95 latency: direct-v1 vs gateway-v2",
+        0,
+        28,
+        storage_latency_p95,
+        "{{runtime}} · {{provider}} · {{instrumentation}}",
+        "Backend provider-call and Angie logical-action P95 normalized to milliseconds. Fast "
+        "failures can improve this value, so review it beside the error ratio.",
+        "ms",
+    ),
+    timeseries(
+        "Storage failures by error class",
+        12,
+        28,
+        "sum by (runtime, provider, instrumentation, error_class) "
+        f"({storage_error_rate})",
+        "{{runtime}} · {{provider}} · {{instrumentation}} · {{error_class}}",
+        "Failed operations grouped only by bounded error class. Forbidden and protocol are rollout "
+        "blockers; use the logs below for safe request-level diagnostics.",
+        "ops",
+        draw_style="bars",
+        stack=True,
+    ),
+    timeseries(
+        "Retries, fallbacks and conflicts",
+        0,
+        36,
+        "sum by (runtime, provider, instrumentation, event) "
+        f"({storage_semantic_rate})",
+        "{{runtime}} · {{provider}} · {{instrumentation}} · {{event}}",
+        "Explicit bounded semantic events from each storage boundary. Angie native-shell curl "
+        "retries are not expanded into individual events. Compare explicit retry rate with "
+        "failure rate to identify amplification.",
+        "ops",
+        stack=True,
+    ),
+    timeseries(
+        "Attempted storage bytes",
+        12,
+        36,
+        "sum by (runtime, provider, instrumentation, outcome) "
+        f"({storage_bytes_rate})",
+        "{{runtime}} · {{provider}} · {{instrumentation}} · {{outcome}}",
+        "Application bytes supplied to storage calls per second. Error bytes were attempted, not "
+        "confirmed stored.",
+        "Bps",
+        stack=True,
+    ),
+    logs_panel(
+        "Recent backend storage failures",
+        44,
+        '{service_name=~"soma-.+"} | json | event="storage_operation_failed"',
+        "Backend failures with provider, instrumentation, workflow, operation, error class, "
+        "bounded upstream diagnostics, and trace context. No paths or payloads are recorded.",
+        width=12,
+    ),
+    logs_panel(
+        "Recent Angie storage failures",
+        44,
+        '{job="angie_storage"} | json | body="angie.storage_operation" | outcome="error"',
+        "Angie failures with provider, instrumentation, workflow, operation, error class, and "
+        "opaque correlation references. Expand a line for safe diagnostics.",
+        x=12,
+        width=12,
+    ),
+    timeseries(
+        "Terminal transcript archive outcomes",
+        0,
+        55,
         'sum by (event) (count_over_time({service_name=~"soma-.+"} | json '
         '| event=~"session_transcript_(archived|archive_timeout|archive_upload_failed|archive_shed)" '
         '[5m]))',
@@ -479,60 +648,18 @@ storage = [
         stack=True,
     ),
     timeseries(
-        "Archive provider p95 by outcome",
-        0,
-        21,
-        "histogram_quantile(0.95, sum by (le, outcome) "
-        f"(rate(soma_storage_duration_milliseconds_bucket{{{ARCHIVE}}}"
-        "[$__rate_interval])))",
-        "{{outcome}}",
-        "P95 provider-attempt latency split by success and error.",
-        "ms",
-    ),
-    timeseries(
-        "Attempted transcript bytes",
+        "Backend storage failures by upstream status",
         12,
-        21,
-        f"sum by (outcome) (rate(soma_storage_transfer_bytes_total{{{ARCHIVE}}}"
-        "[$__rate_interval]))",
-        "{{outcome}}",
-        "Transcript bytes supplied to provider calls. Error bytes were not confirmed stored.",
-        "Bps",
-        stack=True,
-    ),
-    timeseries(
-        "Archive failures by upstream status",
-        0,
-        29,
-        'sum by (upstream_status, service_name) (count_over_time('
-        '{service_name=~"soma-.+"} | json | event="storage_operation_failed" '
-        '| workflow="session_archive" | logical_area="session_transcripts" [5m]))',
-        "{{upstream_status}} · {{service_name}}",
-        "Safe failure diagnostics by upstream status and runtime.",
+        55,
+        'sum by (upstream_status, instrumentation) (count_over_time('
+        '{service_name=~"soma-.+"} | json | event="storage_operation_failed" [5m]))',
+        "{{upstream_status}} · {{instrumentation}}",
+        "Backend failure logs by safe upstream status and instrumentation path. Empty status means "
+        "the failure did not include an HTTP response.",
         "short",
         datasource=LOKI,
         draw_style="bars",
         stack=True,
-    ),
-    timeseries(
-        "Archive retry and guard events",
-        12,
-        29,
-        f"sum by (event) (rate(soma_storage_events_total{{{ARCHIVE}}}[$__rate_interval]))",
-        "{{event}}",
-        "Storage retry events. Circuit-breaker transitions appear in the logs below after the "
-        "emergency guard is deployed.",
-        "ops",
-        stack=True,
-    ),
-    logs_panel(
-        "Recent Angie storage and breaker logs",
-        37,
-        '{service_name=~"soma-.+"} | json '
-        '| event=~"storage_operation_failed|session_transcript_.*|session_archive_breaker_.*|'
-        'session_archive_recovery_complete"',
-        "Transcript archive failures, terminal outcomes and circuit-breaker transitions. "
-        "Expand a line for safe upstream status and request identifiers.",
     ),
 ]
 
@@ -736,7 +863,7 @@ def grid_items(group):
 tabs_spec = [
     ("Health", health),
     ("Sessions & callbacks", sessions),
-    ("Angie storage", storage),
+    ("Storage rollout", storage),
     ("Summary pipeline", summary_pipeline),
     ("Failures & traces", failures),
 ]
@@ -768,14 +895,14 @@ dashboard = {
     "spec": {
         "annotations": [],
         "cursorSync": "Off",
-        "description": "Terminal callback health, sessions, storage, summary work, failures, "
-        "and traces for SOMA's Angie workflows.",
+        "description": "Terminal callback health, sessions, storage-gateway rollout, summary "
+        "work, failures, and traces for SOMA's Angie workflows.",
         "editable": True,
         "elements": elements,
         "layout": {"kind": "TabsLayout", "spec": {"tabs": tabs}},
         "links": [
             {
-                "title": "Angie storage — full page",
+                "title": "Storage diagnostics — full page",
                 "type": "link",
                 "url": "/d/soma-storage-observability/soma-storage-observability?"
                 "var-workflow=session_archive&var-logical_area=session_transcripts",
