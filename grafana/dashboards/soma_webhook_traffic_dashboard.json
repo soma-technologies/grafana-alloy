@@ -1020,7 +1020,7 @@
               },
               "options": {
                 "mode": "markdown",
-                "content": "This is the best historical evidence available before the new classifier is deployed. It proves how many messages were stored, routed outside sales, matched to sales threads, and accepted as Angie mentions. It cannot explain every filtered Slack event, so do not treat the remainder as a specific filter category."
+                "content": "This is the best historical evidence available before the new classifier is deployed. It proves how many messages were stored, routed outside sales, matched to sales threads, and accepted as Angie mentions. Channel names use the 2026-07-31 Slack CLI snapshot and retain the exact ID. It cannot explain every filtered Slack event, so do not treat the remainder as a specific filter category."
               }
             },
             "version": ""
@@ -1069,7 +1069,7 @@
                         "Time": true
                       },
                       "renameByName": {
-                        "channel": "Channel ID",
+                        "channel": "Slack channel",
                         "Value #A": "Stored interactions"
                       }
                     }
@@ -1078,7 +1078,7 @@
               ]
             }
           },
-          "description": "Exact stored-message count per channel in retained logs. Channel IDs without configured aliases remain raw.",
+          "description": "Exact stored-message count per channel in retained logs. Names come from the 2026-07-31 Slack CLI snapshot; the stable channel ID is always retained.",
           "id": 13,
           "links": [],
           "title": "Stored Slack interactions by channel \u2014 current logs",
@@ -1089,6 +1089,220 @@
               "fieldConfig": {
                 "defaults": {},
                 "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Slack channel"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "type": "value",
+                            "options": {
+                              "C09910Q086S": {
+                                "text": "testing-temporary \u00b7 C09910Q086S",
+                                "index": 0
+                              },
+                              "C0998AD8WGL": {
+                                "text": "sales \u00b7 C0998AD8WGL",
+                                "index": 1
+                              },
+                              "C099M99SX47": {
+                                "text": "engineering \u00b7 C099M99SX47",
+                                "index": 2
+                              },
+                              "C099T19N25N": {
+                                "text": "all-soma \u00b7 C099T19N25N",
+                                "index": 3
+                              },
+                              "C099T19PBEC": {
+                                "text": "social \u00b7 C099T19PBEC",
+                                "index": 4
+                              },
+                              "C09C24CQXS8": {
+                                "text": "soma-insure-day-ai \u00b7 C09C24CQXS8",
+                                "index": 5
+                              },
+                              "C09DELX93M2": {
+                                "text": "team-soma-devin-support \u00b7 C09DELX93M2",
+                                "index": 6
+                              },
+                              "C09EGGQ8B60": {
+                                "text": "readings \u00b7 C09EGGQ8B60",
+                                "index": 7
+                              },
+                              "C09PP032J00": {
+                                "text": "leads-and-partnerships \u00b7 C09PP032J00",
+                                "index": 8
+                              },
+                              "C09T12YFWTD": {
+                                "text": "placements-admin \u00b7 C09T12YFWTD",
+                                "index": 9
+                              },
+                              "C0AAUPUH3U4": {
+                                "text": "campaign-logs \u00b7 C0AAUPUH3U4",
+                                "index": 10
+                              },
+                              "C0ABN44ETGT": {
+                                "text": "changelog \u00b7 C0ABN44ETGT",
+                                "index": 11
+                              },
+                              "C0AC00EQUJK": {
+                                "text": "wins \u00b7 C0AC00EQUJK",
+                                "index": 12
+                              },
+                              "C0ADJBCEV3P": {
+                                "text": "markets \u00b7 C0ADJBCEV3P",
+                                "index": 13
+                              },
+                              "C0AEBCR9GJC": {
+                                "text": "accord-submission \u00b7 C0AEBCR9GJC",
+                                "index": 14
+                              },
+                              "C0AELB252BV": {
+                                "text": "angie \u00b7 C0AELB252BV",
+                                "index": 15
+                              },
+                              "C0AFZ3HEVS9": {
+                                "text": "angie-sec \u00b7 C0AFZ3HEVS9",
+                                "index": 16
+                              },
+                              "C0AKGFYPJM8": {
+                                "text": "angie-match-logs \u00b7 C0AKGFYPJM8",
+                                "index": 17
+                              },
+                              "C0AL9PBV92P": {
+                                "text": "customer-love-and-feedback \u00b7 C0AL9PBV92P",
+                                "index": 18
+                              },
+                              "C0AN2S0BQDT": {
+                                "text": "approvals \u00b7 C0AN2S0BQDT",
+                                "index": 19
+                              },
+                              "C0AP61D1HQF": {
+                                "text": "lavish-email \u00b7 C0AP61D1HQF",
+                                "index": 20
+                              },
+                              "C0AQEHCHXS7": {
+                                "text": "vorflux-somainsure \u00b7 C0AQEHCHXS7",
+                                "index": 21
+                              },
+                              "C0AR2AVFV53": {
+                                "text": "shitposting \u00b7 C0AR2AVFV53",
+                                "index": 22
+                              },
+                              "C0ARPT5HC3W": {
+                                "text": "hunting \u00b7 C0ARPT5HC3W",
+                                "index": 23
+                              },
+                              "C0AS2D2E538": {
+                                "text": "simons-pipeline \u00b7 C0AS2D2E538",
+                                "index": 24
+                              },
+                              "C0AUNPC6F2N": {
+                                "text": "insights \u00b7 C0AUNPC6F2N",
+                                "index": 25
+                              },
+                              "C0AVBH62CBW": {
+                                "text": "angie-session-logs \u00b7 C0AVBH62CBW",
+                                "index": 26
+                              },
+                              "C0B5GAPBX50": {
+                                "text": "task-master \u00b7 C0B5GAPBX50",
+                                "index": 27
+                              },
+                              "C0B63G0U2MP": {
+                                "text": "engineering-alerts \u00b7 C0B63G0U2MP",
+                                "index": 28
+                              },
+                              "C0B7C1JE4JU": {
+                                "text": "closing-calls \u00b7 C0B7C1JE4JU",
+                                "index": 29
+                              },
+                              "C0B7L0L6MQX": {
+                                "text": "angie-work \u00b7 C0B7L0L6MQX",
+                                "index": 30
+                              },
+                              "C0B7ZESRTPY": {
+                                "text": "town-square \u00b7 C0B7ZESRTPY",
+                                "index": 31
+                              },
+                              "C0BCRRZ999V": {
+                                "text": "angie-pranav \u00b7 C0BCRRZ999V",
+                                "index": 32
+                              },
+                              "C0BDN779EHY": {
+                                "text": "instant-quoting-insights \u00b7 C0BDN779EHY",
+                                "index": 33
+                              },
+                              "C0BDU32S9HN": {
+                                "text": "test-angie-preet-7986 \u00b7 C0BDU32S9HN",
+                                "index": 34
+                              },
+                              "C0BDYDPHPRR": {
+                                "text": "vorflux-unfurl-16308-3 \u00b7 C0BDYDPHPRR",
+                                "index": 35
+                              },
+                              "C0BE2LJBG0N": {
+                                "text": "vorflux-unfurl-16188-3 \u00b7 C0BE2LJBG0N",
+                                "index": 36
+                              },
+                              "C0BEJEK1R3R": {
+                                "text": "sales-onboarding \u00b7 C0BEJEK1R3R",
+                                "index": 37
+                              },
+                              "C0BEKRMKY4S": {
+                                "text": "text-leads \u00b7 C0BEKRMKY4S",
+                                "index": 38
+                              },
+                              "C0BF058UU7Q": {
+                                "text": "bugs \u00b7 C0BF058UU7Q",
+                                "index": 39
+                              },
+                              "C0BFP2X1JCF": {
+                                "text": "daycare-submission \u00b7 C0BFP2X1JCF",
+                                "index": 40
+                              },
+                              "C0BFUPP2RB6": {
+                                "text": "daycare-intake \u00b7 C0BFUPP2RB6",
+                                "index": 41
+                              },
+                              "C0BH2QDGWKT": {
+                                "text": "customer-servicing \u00b7 C0BH2QDGWKT",
+                                "index": 42
+                              },
+                              "C0BHFD1LF28": {
+                                "text": "food \u00b7 C0BHFD1LF28",
+                                "index": 43
+                              },
+                              "C0BHSSB2TMH": {
+                                "text": "zzzz-angie \u00b7 C0BHSSB2TMH",
+                                "index": 44
+                              },
+                              "C0BHUUSJ4EA": {
+                                "text": "daycare-insights \u00b7 C0BHUUSJ4EA",
+                                "index": 45
+                              },
+                              "C0BJFBJH1K8": {
+                                "text": "loma-test \u00b7 C0BJFBJH1K8",
+                                "index": 46
+                              },
+                              "C0BJX4G5WLT": {
+                                "text": "desk-submissions \u00b7 C0BJX4G5WLT",
+                                "index": 47
+                              },
+                              "C0BKUSS435Z": {
+                                "text": "angie-parv \u00b7 C0BKUSS435Z",
+                                "index": 48
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
                   {
                     "matcher": {
                       "id": "byName",
@@ -1799,7 +2013,7 @@
                         "Time 6": true
                       },
                       "renameByName": {
-                        "channel": "Channel",
+                        "channel": "Slack channel",
                         "Value #A": "Events",
                         "Value #B": "Slack share",
                         "Value #C": "Direct",
@@ -1813,7 +2027,7 @@
               ]
             }
           },
-          "description": "Per-channel volume and current utility. Unknown channels remain visible by Slack channel ID.",
+          "description": "Per-channel volume and current utility. Every mapped name retains its Slack channel ID; new IDs appear as unknown until the CLI snapshot is refreshed.",
           "id": 21,
           "links": [],
           "title": "Slack traffic by channel",
@@ -1824,6 +2038,18 @@
               "fieldConfig": {
                 "defaults": {},
                 "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Slack channel"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 280
+                      }
+                    ]
+                  },
                   {
                     "matcher": {
                       "id": "byName",
@@ -2789,7 +3015,7 @@
               },
               "options": {
                 "mode": "markdown",
-                "content": "### Questions this view answers\n\n1. **Traffic:** Which webhook source owns what percentage of ingress?\n2. **Slack channels:** Which channels create Slack volume?\n3. **Utility:** What reaches a current business path, what is persisted without a matcher route, and what is filtered?\n4. **Action:** Which Slack subscriptions or channel memberships can be removed safely?\n\n### Trust boundary\n\n`Webhook requests` measure HTTP receipts. `Slack events` measure valid payloads classified after signature verification. Channel/disposition data did not exist before this instrumentation release, so historical source totals and Slack breakdowns have different coverage. Trust Slack percentages only when **Classification coverage** is at least 95%.\n\n### Payload privacy\n\nThe Slack metric contains only channel alias/ID, event type, bounded disposition, and utility. It never records message text, user identity, thread ID, event ID, or files."
+                "content": "### Questions this view answers\n\n1. **Traffic:** Which webhook source owns what percentage of ingress?\n2. **Slack channels:** Which named channels create Slack volume?\n3. **Utility:** What reaches a current business path, what is persisted without a matcher route, and what is filtered?\n4. **Action:** Which Slack subscriptions or channel memberships can be removed safely?\n\n### Channel identity\n\nChannel names use a versioned Slack CLI snapshot refreshed on **2026-07-31**. Every name is shown with its immutable `C0\u2026` ID, so renames and stale mappings remain correlatable. New IDs appear as `unknown \u00b7 C0\u2026` in live metrics until the snapshot is refreshed.\n\n### Trust boundary\n\n`Webhook requests` measure HTTP receipts. `Slack events` measure valid payloads classified after signature verification. Channel/disposition data did not exist before this instrumentation release, so historical source totals and Slack breakdowns have different coverage. Trust Slack percentages only when **Classification coverage** is at least 95%.\n\n### Payload privacy\n\nThe Slack metric contains only channel name/ID, event type, bounded disposition, and utility. It never records message text, user identity, thread ID, event ID, or files."
               }
             },
             "version": ""
