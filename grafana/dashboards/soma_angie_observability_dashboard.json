@@ -11,7 +11,7 @@
   "spec": {
     "annotations": [],
     "cursorSync": "Off",
-    "description": "Terminal callback health, sessions, storage-gateway rollout, summary work, failures, and traces for SOMA's Angie workflows.",
+    "description": "Terminal callback health, sessions, storage, summary work, failures, and traces for SOMA's Angie workflows.",
     "editable": true,
     "elements": {
       "panel-1": {
@@ -1068,26 +1068,82 @@
           "data": {
             "kind": "QueryGroup",
             "spec": {
-              "queries": [],
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "queryType": "instant",
+                        "editorMode": "code",
+                        "expr": "100 * sum(rate(soma_storage_errors_total{workflow=\"session_archive\",logical_area=\"session_transcripts\"}[5m])) / clamp_min(sum(rate(soma_storage_operations_total{workflow=\"session_archive\",logical_area=\"session_transcripts\"}[5m])), 1e-9)",
+                        "instant": true,
+                        "format": "table",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
               "queryOptions": {},
               "transformations": []
             }
           },
-          "description": "",
+          "description": "Failed transcript-storage attempts divided by all attempts. Retries count again; this is not the percentage of sessions whose transcript was lost.",
           "id": 14,
           "links": [],
-          "title": "Storage gateway rollout guide",
+          "title": "Provider attempt error ratio",
           "vizConfig": {
-            "group": "text",
+            "group": "stat",
             "kind": "VizConfig",
             "spec": {
               "fieldConfig": {
-                "defaults": {},
+                "defaults": {
+                  "unit": "percent",
+                  "decimals": 1,
+                  "noValue": "Unknown \u2014 not measured",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text"
+                      },
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "orange",
+                        "value": 1
+                      },
+                      {
+                        "color": "red",
+                        "value": 5
+                      }
+                    ]
+                  }
+                },
                 "overrides": []
               },
               "options": {
-                "mode": "markdown",
-                "content": "**`direct_v1` and `gateway_v2` identify instrumentation paths, not different metric families.** Compare the same runtime, provider, workflow, and operation. Every observed backend provider call or Angie logical action must appear under exactly one instrumentation path; do not compare absolute volume across runtimes. Backend rollout is `off` \u2192 `object_store` \u2192 `all`; enable Angie only after backend is stable. Roll back the relevant flag if forbidden/protocol failures appear, the gateway error ratio exceeds the larger of baseline +0.5 pp or 1.5\u00d7 baseline, or P95 exceeds the larger of baseline +20% or +100 ms. Soak the first backend slice for 2 hours and 100 operations, then each full rollout for 24 hours."
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "colorMode": "background",
+                "graphMode": "area"
               }
             },
             "version": ""
@@ -1114,7 +1170,7 @@
                       "spec": {
                         "queryType": "instant",
                         "editorMode": "code",
-                        "expr": "(sum((label_replace((rate(soma_storage_operations_total{instrumentation=\"gateway_v2\",outcome=\"error\"}[5m])), \"runtime\", \"backend\", \"runtime\", \"^$\")) or (label_replace((rate(angie_storage_operations_total{instrumentation=\"gateway_v2\",outcome=\"error\"}[5m])), \"runtime\", \"angie\", \"runtime\", \"^$\"))) or sum((label_replace((rate(soma_storage_operations_total{instrumentation=\"gateway_v2\"}[5m])), \"runtime\", \"backend\", \"runtime\", \"^$\")) or (label_replace((rate(angie_storage_operations_total{instrumentation=\"gateway_v2\"}[5m])), \"runtime\", \"angie\", \"runtime\", \"^$\"))) * 0) * 60",
+                        "expr": "sum(rate(soma_storage_errors_total{workflow=\"session_archive\",logical_area=\"session_transcripts\"}[5m])) * 60",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -1129,10 +1185,10 @@
               "transformations": []
             }
           },
-          "description": "Failed gateway-v2 operations. Backend counts provider calls; Angie counts logical actions and does not expand curl's internal retries. This is not a unique-workflow failure count.",
+          "description": "Failed Supabase transcript archive attempts per minute.",
           "id": 15,
           "links": [],
-          "title": "Gateway failures / min",
+          "title": "Failed archive calls / min",
           "vizConfig": {
             "group": "stat",
             "kind": "VizConfig",
@@ -1202,7 +1258,7 @@
                       "spec": {
                         "queryType": "instant",
                         "editorMode": "code",
-                        "expr": "(sum((label_replace((rate(soma_storage_operations_total{instrumentation=\"gateway_v2\",outcome=\"error\",error_class=~\"forbidden|protocol\"}[5m])), \"runtime\", \"backend\", \"runtime\", \"^$\")) or (label_replace((rate(angie_storage_operations_total{instrumentation=\"gateway_v2\",outcome=\"error\",error_class=~\"forbidden|protocol\"}[5m])), \"runtime\", \"angie\", \"runtime\", \"^$\"))) or sum((label_replace((rate(soma_storage_operations_total{instrumentation=\"gateway_v2\"}[5m])), \"runtime\", \"backend\", \"runtime\", \"^$\")) or (label_replace((rate(angie_storage_operations_total{instrumentation=\"gateway_v2\"}[5m])), \"runtime\", \"angie\", \"runtime\", \"^$\"))) * 0) * 60",
+                        "expr": "sum(rate(soma_storage_events_total{event=\"retry\",workflow=\"session_archive\",logical_area=\"session_transcripts\"}[5m])) * 60",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -1217,10 +1273,10 @@
               "transformations": []
             }
           },
-          "description": "Gateway-v2 forbidden and protocol failures. Any nonzero value blocks the rollout.",
+          "description": "Retry events per minute. Compare with failures to identify retry amplification.",
           "id": 16,
           "links": [],
-          "title": "Blocked classes / min",
+          "title": "Archive retries / min",
           "vizConfig": {
             "group": "stat",
             "kind": "VizConfig",
@@ -1290,7 +1346,7 @@
                       "spec": {
                         "queryType": "instant",
                         "editorMode": "code",
-                        "expr": "(sum((label_replace((rate(soma_storage_events_total{instrumentation=\"gateway_v2\",event=\"retry\"}[5m])), \"runtime\", \"backend\", \"runtime\", \"^$\")) or (label_replace((rate(angie_storage_semantic_events_total{instrumentation=\"gateway_v2\",event=\"retry\"}[5m])), \"runtime\", \"angie\", \"runtime\", \"^$\"))) or sum((label_replace((rate(soma_storage_operations_total{instrumentation=\"gateway_v2\"}[5m])), \"runtime\", \"backend\", \"runtime\", \"^$\")) or (label_replace((rate(angie_storage_operations_total{instrumentation=\"gateway_v2\"}[5m])), \"runtime\", \"angie\", \"runtime\", \"^$\"))) * 0) * 60",
+                        "expr": "histogram_quantile(0.95, sum by (le) (rate(soma_storage_duration_milliseconds_bucket{workflow=\"session_archive\",logical_area=\"session_transcripts\"}[5m])))",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -1305,36 +1361,24 @@
               "transformations": []
             }
           },
-          "description": "Gateway-v2 retry events across both runtimes. Compare with failures to detect retry amplification.",
+          "description": "P95 provider-attempt duration. Fast rejections can make this look artificially good.",
           "id": 17,
           "links": [],
-          "title": "Gateway retries / min",
+          "title": "Archive provider p95",
           "vizConfig": {
             "group": "stat",
             "kind": "VizConfig",
             "spec": {
               "fieldConfig": {
                 "defaults": {
-                  "unit": "opm",
-                  "decimals": 1,
+                  "unit": "ms",
+                  "decimals": 0,
                   "noValue": "Unknown \u2014 not measured",
                   "thresholds": {
                     "mode": "absolute",
                     "steps": [
                       {
                         "color": "text"
-                      },
-                      {
-                        "color": "green",
-                        "value": 0
-                      },
-                      {
-                        "color": "orange",
-                        "value": 1
-                      },
-                      {
-                        "color": "red",
-                        "value": 10
                       }
                     ]
                   }
@@ -1378,7 +1422,7 @@
                       "spec": {
                         "queryType": "instant",
                         "editorMode": "code",
-                        "expr": "(sum(rate(angie_storage_observability_dropped_events_total[5m])) or sum(rate(angie_storage_operations_total[5m])) * 0) * 60",
+                        "expr": "100 * sum(rate(soma_storage_operations_total{workflow=\"session_archive\",logical_area=\"session_transcripts\",outcome=\"success\"}[5m])) / clamp_min(sum(rate(soma_storage_operations_total{workflow=\"session_archive\",logical_area=\"session_transcripts\"}[5m])), 1e-9)",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -1393,18 +1437,20 @@
               "transformations": []
             }
           },
-          "description": "Storage observations the fail-open Angie datagram producer could not deliver. Missing telemetry is a rollout blocker, not a healthy zero.",
+          "description": "Successful provider attempts as a share of attempts. Retries and snapshots count again.",
           "id": 18,
           "links": [],
-          "title": "Angie observer drops / min",
+          "title": "Successful archive attempts",
           "vizConfig": {
-            "group": "stat",
+            "group": "gauge",
             "kind": "VizConfig",
             "spec": {
               "fieldConfig": {
                 "defaults": {
-                  "unit": "opm",
+                  "unit": "percent",
                   "decimals": 1,
+                  "min": 0,
+                  "max": 100,
                   "noValue": "Unknown \u2014 not measured",
                   "thresholds": {
                     "mode": "absolute",
@@ -1413,16 +1459,16 @@
                         "color": "text"
                       },
                       {
-                        "color": "green",
+                        "color": "red",
                         "value": 0
                       },
                       {
                         "color": "orange",
-                        "value": 1
+                        "value": 90
                       },
                       {
-                        "color": "red",
-                        "value": 10
+                        "color": "green",
+                        "value": 99
                       }
                     ]
                   }
@@ -1430,6 +1476,7 @@
                 "overrides": []
               },
               "options": {
+                "orientation": "auto",
                 "reduceOptions": {
                   "calcs": [
                     "lastNotNull"
@@ -1437,9 +1484,8 @@
                   "fields": "",
                   "values": false
                 },
-                "textMode": "auto",
-                "colorMode": "background",
-                "graphMode": "area"
+                "showThresholdLabels": false,
+                "showThresholdMarkers": true
               }
             },
             "version": ""
@@ -1466,7 +1512,7 @@
                       "spec": {
                         "queryType": "instant",
                         "editorMode": "code",
-                        "expr": "100 * ((sum(rate(soma_storage_operations_total{instrumentation=\"gateway_v2\"}[15m]))) or (sum(rate(soma_storage_operations_total{instrumentation=~\"direct_v1|gateway_v2\"}[15m]))) * 0) / clamp_min((sum(rate(soma_storage_operations_total{instrumentation=~\"direct_v1|gateway_v2\"}[15m]))), 1e-9)",
+                        "expr": "100 * sum(rate(soma_storage_operations_total{workflow=\"session_archive\",logical_area=\"session_transcripts\",outcome=\"error\"}[5m])) / clamp_min(sum(rate(soma_storage_operations_total{workflow=\"session_archive\",logical_area=\"session_transcripts\"}[5m])), 1e-9)",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -1481,10 +1527,10 @@
               "transformations": []
             }
           },
-          "description": "Share of recently observed backend provider calls emitted through gateway-v2. This is rollout progress, not a health score, so it is deliberately uncoloured.",
+          "description": "Failed provider attempts as a share of attempts, not unique sessions.",
           "id": 19,
           "links": [],
-          "title": "Backend gateway-v2 traffic share",
+          "title": "Failed archive attempts",
           "vizConfig": {
             "group": "gauge",
             "kind": "VizConfig",
@@ -1501,6 +1547,18 @@
                     "steps": [
                       {
                         "color": "text"
+                      },
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "orange",
+                        "value": 1
+                      },
+                      {
+                        "color": "red",
+                        "value": 5
                       }
                     ]
                   }
@@ -1542,12 +1600,11 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "queryType": "instant",
+                        "queryType": "range",
                         "editorMode": "code",
-                        "expr": "100 * ((sum(rate(angie_storage_operations_total{instrumentation=\"gateway_v2\"}[15m]))) or (sum(rate(angie_storage_operations_total{instrumentation=~\"direct_v1|gateway_v2\"}[15m]))) * 0) / clamp_min((sum(rate(angie_storage_operations_total{instrumentation=~\"direct_v1|gateway_v2\"}[15m]))), 1e-9)",
-                        "instant": true,
-                        "format": "table",
-                        "range": false
+                        "expr": "sum by (operation, outcome) (rate(soma_storage_operations_total{workflow=\"session_archive\",logical_area=\"session_transcripts\"}[$__rate_interval]))",
+                        "range": true,
+                        "legendFormat": "{{operation}} \u00b7 {{outcome}}"
                       },
                       "version": "v0"
                     },
@@ -1559,43 +1616,49 @@
               "transformations": []
             }
           },
-          "description": "Share of recently observed Angie logical actions emitted through gateway-v2. This is rollout progress, not a health score, so it is deliberately uncoloured.",
+          "description": "Supabase transcript archive attempts by operation and outcome.",
           "id": 20,
           "links": [],
-          "title": "Angie gateway-v2 traffic share",
+          "title": "Archive provider attempts",
           "vizConfig": {
-            "group": "gauge",
+            "group": "timeseries",
             "kind": "VizConfig",
             "spec": {
               "fieldConfig": {
                 "defaults": {
-                  "unit": "percent",
-                  "decimals": 1,
-                  "min": 0,
-                  "max": 100,
+                  "unit": "ops",
                   "noValue": "Unknown \u2014 not measured",
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "color": "text"
-                      }
-                    ]
+                  "custom": {
+                    "drawStyle": "line",
+                    "fillOpacity": 12,
+                    "lineWidth": 2,
+                    "showPoints": "never",
+                    "spanNulls": true,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "normal"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
                   }
                 },
                 "overrides": []
               },
               "options": {
-                "orientation": "auto",
-                "reduceOptions": {
+                "legend": {
                   "calcs": [
-                    "lastNotNull"
+                    "lastNotNull",
+                    "max"
                   ],
-                  "fields": "",
-                  "values": false
+                  "displayMode": "table",
+                  "placement": "bottom",
+                  "showLegend": true
                 },
-                "showThresholdLabels": false,
-                "showThresholdMarkers": true
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
               }
             },
             "version": ""
@@ -1615,16 +1678,15 @@
                     "hidden": false,
                     "query": {
                       "datasource": {
-                        "name": "grafanacloud-prom"
+                        "name": "grafanacloud-logs"
                       },
-                      "group": "prometheus",
+                      "group": "loki",
                       "kind": "DataQuery",
                       "spec": {
                         "queryType": "range",
                         "editorMode": "code",
-                        "expr": "sum by (runtime, provider, instrumentation, workflow, operation, outcome) ((label_replace((rate(soma_storage_operations_total[$__rate_interval])), \"runtime\", \"backend\", \"runtime\", \"^$\")) or (label_replace((rate(angie_storage_operations_total[$__rate_interval])), \"runtime\", \"angie\", \"runtime\", \"^$\")))",
-                        "range": true,
-                        "legendFormat": "{{runtime}} \u00b7 {{provider}} \u00b7 {{instrumentation}} \u00b7 {{workflow}} \u00b7 {{operation}} \u00b7 {{outcome}}"
+                        "expr": "sum by (event) (count_over_time({service_name=~\"soma-.+\"} | json | event=~\"session_transcript_(archived|archive_timeout|archive_upload_failed|archive_shed)\" [5m]))",
+                        "legendFormat": "{{event}}"
                       },
                       "version": "v0"
                     },
@@ -1636,21 +1698,21 @@
               "transformations": []
             }
           },
-          "description": "Backend series count provider calls; Angie series count logical actions. Each observed operation must appear under exactly one instrumentation path. Native-shell curl retries remain inside one Angie action.",
+          "description": "Session-level archive outcomes and terminal failures. Unlike provider metrics, one log event represents one recorder outcome.",
           "id": 21,
           "links": [],
-          "title": "Storage operations by runtime and instrumentation",
+          "title": "Terminal transcript archive outcomes",
           "vizConfig": {
             "group": "timeseries",
             "kind": "VizConfig",
             "spec": {
               "fieldConfig": {
                 "defaults": {
-                  "unit": "ops",
+                  "unit": "short",
                   "noValue": "Unknown \u2014 not measured",
                   "custom": {
-                    "drawStyle": "line",
-                    "fillOpacity": 12,
+                    "drawStyle": "bars",
+                    "fillOpacity": 45,
                     "lineWidth": 2,
                     "showPoints": "never",
                     "spanNulls": true,
@@ -1705,9 +1767,9 @@
                       "spec": {
                         "queryType": "range",
                         "editorMode": "code",
-                        "expr": "100 * ((sum by (runtime, provider, instrumentation) ((label_replace((rate(soma_storage_operations_total{outcome=\"error\"}[$__rate_interval])), \"runtime\", \"backend\", \"runtime\", \"^$\")) or (label_replace((rate(angie_storage_operations_total{outcome=\"error\"}[$__rate_interval])), \"runtime\", \"angie\", \"runtime\", \"^$\")))) or (sum by (runtime, provider, instrumentation) ((label_replace((rate(soma_storage_operations_total[$__rate_interval])), \"runtime\", \"backend\", \"runtime\", \"^$\")) or (label_replace((rate(angie_storage_operations_total[$__rate_interval])), \"runtime\", \"angie\", \"runtime\", \"^$\"))) * 0)) / clamp_min(sum by (runtime, provider, instrumentation) ((label_replace((rate(soma_storage_operations_total[$__rate_interval])), \"runtime\", \"backend\", \"runtime\", \"^$\")) or (label_replace((rate(angie_storage_operations_total[$__rate_interval])), \"runtime\", \"angie\", \"runtime\", \"^$\"))), 1e-9)",
+                        "expr": "histogram_quantile(0.95, sum by (le, outcome) (rate(soma_storage_duration_milliseconds_bucket{workflow=\"session_archive\",logical_area=\"session_transcripts\"}[$__rate_interval])))",
                         "range": true,
-                        "legendFormat": "{{runtime}} \u00b7 {{provider}} \u00b7 {{instrumentation}}"
+                        "legendFormat": "{{outcome}}"
                       },
                       "version": "v0"
                     },
@@ -1719,115 +1781,10 @@
               "transformations": []
             }
           },
-          "description": "Within-runtime operation error ratio: backend provider calls and Angie logical actions. Compare gateway with direct for the same runtime, provider, workflow, and operation; do not compare the two runtimes as if they have identical counting semantics.",
+          "description": "P95 provider-attempt latency split by success and error.",
           "id": 22,
           "links": [],
-          "title": "Attempt error ratio: direct-v1 vs gateway-v2",
-          "vizConfig": {
-            "group": "timeseries",
-            "kind": "VizConfig",
-            "spec": {
-              "fieldConfig": {
-                "defaults": {
-                  "unit": "percent",
-                  "noValue": "Unknown \u2014 not measured",
-                  "custom": {
-                    "drawStyle": "line",
-                    "fillOpacity": 12,
-                    "lineWidth": 2,
-                    "showPoints": "never",
-                    "spanNulls": true,
-                    "stacking": {
-                      "group": "A",
-                      "mode": "none"
-                    },
-                    "thresholdsStyle": {
-                      "mode": "line"
-                    }
-                  },
-                  "min": 0,
-                  "max": 100,
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "color": "text"
-                      },
-                      {
-                        "color": "green",
-                        "value": 0
-                      },
-                      {
-                        "color": "orange",
-                        "value": 1
-                      },
-                      {
-                        "color": "red",
-                        "value": 5
-                      }
-                    ]
-                  }
-                },
-                "overrides": []
-              },
-              "options": {
-                "legend": {
-                  "calcs": [
-                    "lastNotNull",
-                    "max"
-                  ],
-                  "displayMode": "table",
-                  "placement": "bottom",
-                  "showLegend": true
-                },
-                "tooltip": {
-                  "mode": "multi",
-                  "sort": "desc"
-                }
-              }
-            },
-            "version": ""
-          }
-        }
-      },
-      "panel-23": {
-        "kind": "Panel",
-        "spec": {
-          "data": {
-            "kind": "QueryGroup",
-            "spec": {
-              "queries": [
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "hidden": false,
-                    "query": {
-                      "datasource": {
-                        "name": "grafanacloud-prom"
-                      },
-                      "group": "prometheus",
-                      "kind": "DataQuery",
-                      "spec": {
-                        "queryType": "range",
-                        "editorMode": "code",
-                        "expr": "(label_replace((histogram_quantile(0.95, sum by (le, provider, instrumentation) (rate(soma_storage_duration_milliseconds_bucket[$__rate_interval])))), \"runtime\", \"backend\", \"runtime\", \"^$\")) or (label_replace((1000 * histogram_quantile(0.95, sum by (le, provider, instrumentation) (rate(angie_storage_operation_duration_seconds_bucket[$__rate_interval])))), \"runtime\", \"angie\", \"runtime\", \"^$\"))",
-                        "range": true,
-                        "legendFormat": "{{runtime}} \u00b7 {{provider}} \u00b7 {{instrumentation}}"
-                      },
-                      "version": "v0"
-                    },
-                    "refId": "A"
-                  }
-                }
-              ],
-              "queryOptions": {},
-              "transformations": []
-            }
-          },
-          "description": "Backend provider-call and Angie logical-action P95 normalized to milliseconds. Fast failures can improve this value, so review it beside the error ratio.",
-          "id": 23,
-          "links": [],
-          "title": "P95 latency: direct-v1 vs gateway-v2",
+          "title": "Archive provider p95 by outcome",
           "vizConfig": {
             "group": "timeseries",
             "kind": "VizConfig",
@@ -1873,7 +1830,7 @@
           }
         }
       },
-      "panel-24": {
+      "panel-23": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -1893,9 +1850,9 @@
                       "spec": {
                         "queryType": "range",
                         "editorMode": "code",
-                        "expr": "sum by (runtime, provider, instrumentation, error_class) ((label_replace((rate(soma_storage_operations_total{outcome=\"error\"}[$__rate_interval])), \"runtime\", \"backend\", \"runtime\", \"^$\")) or (label_replace((rate(angie_storage_operations_total{outcome=\"error\"}[$__rate_interval])), \"runtime\", \"angie\", \"runtime\", \"^$\")))",
+                        "expr": "sum by (outcome) (rate(soma_storage_transfer_bytes_total{workflow=\"session_archive\",logical_area=\"session_transcripts\"}[$__rate_interval]))",
                         "range": true,
-                        "legendFormat": "{{runtime}} \u00b7 {{provider}} \u00b7 {{instrumentation}} \u00b7 {{error_class}}"
+                        "legendFormat": "{{outcome}}"
                       },
                       "version": "v0"
                     },
@@ -1907,17 +1864,99 @@
               "transformations": []
             }
           },
-          "description": "Failed operations grouped only by bounded error class. Forbidden and protocol are rollout blockers; use the logs below for safe request-level diagnostics.",
-          "id": 24,
+          "description": "Transcript bytes supplied to provider calls. Error bytes were not confirmed stored.",
+          "id": 23,
           "links": [],
-          "title": "Storage failures by error class",
+          "title": "Attempted transcript bytes",
           "vizConfig": {
             "group": "timeseries",
             "kind": "VizConfig",
             "spec": {
               "fieldConfig": {
                 "defaults": {
-                  "unit": "ops",
+                  "unit": "Bps",
+                  "noValue": "Unknown \u2014 not measured",
+                  "custom": {
+                    "drawStyle": "line",
+                    "fillOpacity": 12,
+                    "lineWidth": 2,
+                    "showPoints": "never",
+                    "spanNulls": true,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "normal"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "calcs": [
+                    "lastNotNull",
+                    "max"
+                  ],
+                  "displayMode": "table",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": ""
+          }
+        }
+      },
+      "panel-24": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-logs"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "queryType": "range",
+                        "editorMode": "code",
+                        "expr": "sum by (upstream_status, service_name) (count_over_time({service_name=~\"soma-.+\"} | json | event=\"storage_operation_failed\" | workflow=\"session_archive\" | logical_area=\"session_transcripts\" [5m]))",
+                        "legendFormat": "{{upstream_status}} \u00b7 {{service_name}}"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Safe failure diagnostics by upstream status and runtime.",
+          "id": 24,
+          "links": [],
+          "title": "Archive failures by upstream status",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short",
                   "noValue": "Unknown \u2014 not measured",
                   "custom": {
                     "drawStyle": "bars",
@@ -1976,9 +2015,9 @@
                       "spec": {
                         "queryType": "range",
                         "editorMode": "code",
-                        "expr": "sum by (runtime, provider, instrumentation, event) ((label_replace((rate(soma_storage_events_total[$__rate_interval])), \"runtime\", \"backend\", \"runtime\", \"^$\")) or (label_replace((rate(angie_storage_semantic_events_total[$__rate_interval])), \"runtime\", \"angie\", \"runtime\", \"^$\")))",
+                        "expr": "sum by (event) (rate(soma_storage_events_total{workflow=\"session_archive\",logical_area=\"session_transcripts\"}[$__rate_interval]))",
                         "range": true,
-                        "legendFormat": "{{runtime}} \u00b7 {{provider}} \u00b7 {{instrumentation}} \u00b7 {{event}}"
+                        "legendFormat": "{{event}}"
                       },
                       "version": "v0"
                     },
@@ -1990,10 +2029,10 @@
               "transformations": []
             }
           },
-          "description": "Explicit bounded semantic events from each storage boundary. Angie native-shell curl retries are not expanded into individual events. Compare explicit retry rate with failure rate to identify amplification.",
+          "description": "Storage retry events. Circuit-breaker transitions appear in the logs below after the emergency guard is deployed.",
           "id": 25,
           "links": [],
-          "title": "Retries, fallbacks and conflicts",
+          "title": "Archive retry and guard events",
           "vizConfig": {
             "group": "timeseries",
             "kind": "VizConfig",
@@ -2052,16 +2091,15 @@
                     "hidden": false,
                     "query": {
                       "datasource": {
-                        "name": "grafanacloud-prom"
+                        "name": "grafanacloud-logs"
                       },
-                      "group": "prometheus",
+                      "group": "loki",
                       "kind": "DataQuery",
                       "spec": {
+                        "direction": "backward",
                         "queryType": "range",
                         "editorMode": "code",
-                        "expr": "sum by (runtime, provider, instrumentation, outcome) ((label_replace((rate(soma_storage_transfer_bytes_total[$__rate_interval])), \"runtime\", \"backend\", \"runtime\", \"^$\")) or (label_replace((rate(angie_storage_bytes_total[$__rate_interval])), \"runtime\", \"angie\", \"runtime\", \"^$\")))",
-                        "range": true,
-                        "legendFormat": "{{runtime}} \u00b7 {{provider}} \u00b7 {{instrumentation}} \u00b7 {{outcome}}"
+                        "expr": "{service_name=~\"soma-.+\"} | json | event=~\"storage_operation_failed|session_transcript_.*|session_archive_breaker_.*|session_archive_recovery_complete\""
                       },
                       "version": "v0"
                     },
@@ -2073,49 +2111,28 @@
               "transformations": []
             }
           },
-          "description": "Application bytes supplied to storage calls per second. Error bytes were attempted, not confirmed stored.",
+          "description": "Transcript archive failures, terminal outcomes and circuit-breaker transitions. Expand a line for safe upstream status and request identifiers.",
           "id": 26,
           "links": [],
-          "title": "Attempted storage bytes",
+          "title": "Recent Angie storage and breaker logs",
           "vizConfig": {
-            "group": "timeseries",
+            "group": "logs",
             "kind": "VizConfig",
             "spec": {
               "fieldConfig": {
-                "defaults": {
-                  "unit": "Bps",
-                  "noValue": "Unknown \u2014 not measured",
-                  "custom": {
-                    "drawStyle": "line",
-                    "fillOpacity": 12,
-                    "lineWidth": 2,
-                    "showPoints": "never",
-                    "spanNulls": true,
-                    "stacking": {
-                      "group": "A",
-                      "mode": "normal"
-                    },
-                    "thresholdsStyle": {
-                      "mode": "off"
-                    }
-                  }
-                },
+                "defaults": {},
                 "overrides": []
               },
               "options": {
-                "legend": {
-                  "calcs": [
-                    "lastNotNull",
-                    "max"
-                  ],
-                  "displayMode": "table",
-                  "placement": "bottom",
-                  "showLegend": true
-                },
-                "tooltip": {
-                  "mode": "multi",
-                  "sort": "desc"
-                }
+                "dedupStrategy": "none",
+                "enableInfiniteScrolling": false,
+                "enableLogDetails": true,
+                "prettifyLogMessage": false,
+                "showCommonLabels": false,
+                "showLabels": false,
+                "showTime": true,
+                "sortOrder": "Descending",
+                "wrapLogMessage": true
               }
             },
             "version": ""
@@ -2123,292 +2140,6 @@
         }
       },
       "panel-27": {
-        "kind": "Panel",
-        "spec": {
-          "data": {
-            "kind": "QueryGroup",
-            "spec": {
-              "queries": [
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "hidden": false,
-                    "query": {
-                      "datasource": {
-                        "name": "grafanacloud-logs"
-                      },
-                      "group": "loki",
-                      "kind": "DataQuery",
-                      "spec": {
-                        "direction": "backward",
-                        "queryType": "range",
-                        "editorMode": "code",
-                        "expr": "{service_name=~\"soma-.+\"} | json | event=\"storage_operation_failed\""
-                      },
-                      "version": "v0"
-                    },
-                    "refId": "A"
-                  }
-                }
-              ],
-              "queryOptions": {},
-              "transformations": []
-            }
-          },
-          "description": "Backend failures with provider, instrumentation, workflow, operation, error class, bounded upstream diagnostics, and trace context. No paths or payloads are recorded.",
-          "id": 27,
-          "links": [],
-          "title": "Recent backend storage failures",
-          "vizConfig": {
-            "group": "logs",
-            "kind": "VizConfig",
-            "spec": {
-              "fieldConfig": {
-                "defaults": {},
-                "overrides": []
-              },
-              "options": {
-                "dedupStrategy": "none",
-                "enableInfiniteScrolling": false,
-                "enableLogDetails": true,
-                "prettifyLogMessage": false,
-                "showCommonLabels": false,
-                "showLabels": false,
-                "showTime": true,
-                "sortOrder": "Descending",
-                "wrapLogMessage": true
-              }
-            },
-            "version": ""
-          }
-        }
-      },
-      "panel-28": {
-        "kind": "Panel",
-        "spec": {
-          "data": {
-            "kind": "QueryGroup",
-            "spec": {
-              "queries": [
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "hidden": false,
-                    "query": {
-                      "datasource": {
-                        "name": "grafanacloud-logs"
-                      },
-                      "group": "loki",
-                      "kind": "DataQuery",
-                      "spec": {
-                        "direction": "backward",
-                        "queryType": "range",
-                        "editorMode": "code",
-                        "expr": "{job=\"angie_storage\"} | json | body=\"angie.storage_operation\" | outcome=\"error\""
-                      },
-                      "version": "v0"
-                    },
-                    "refId": "A"
-                  }
-                }
-              ],
-              "queryOptions": {},
-              "transformations": []
-            }
-          },
-          "description": "Angie failures with provider, instrumentation, workflow, operation, error class, and opaque correlation references. Expand a line for safe diagnostics.",
-          "id": 28,
-          "links": [],
-          "title": "Recent Angie storage failures",
-          "vizConfig": {
-            "group": "logs",
-            "kind": "VizConfig",
-            "spec": {
-              "fieldConfig": {
-                "defaults": {},
-                "overrides": []
-              },
-              "options": {
-                "dedupStrategy": "none",
-                "enableInfiniteScrolling": false,
-                "enableLogDetails": true,
-                "prettifyLogMessage": false,
-                "showCommonLabels": false,
-                "showLabels": false,
-                "showTime": true,
-                "sortOrder": "Descending",
-                "wrapLogMessage": true
-              }
-            },
-            "version": ""
-          }
-        }
-      },
-      "panel-29": {
-        "kind": "Panel",
-        "spec": {
-          "data": {
-            "kind": "QueryGroup",
-            "spec": {
-              "queries": [
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "hidden": false,
-                    "query": {
-                      "datasource": {
-                        "name": "grafanacloud-logs"
-                      },
-                      "group": "loki",
-                      "kind": "DataQuery",
-                      "spec": {
-                        "queryType": "range",
-                        "editorMode": "code",
-                        "expr": "sum by (event) (count_over_time({service_name=~\"soma-.+\"} | json | event=~\"session_transcript_(archived|archive_timeout|archive_upload_failed|archive_shed)\" [5m]))",
-                        "legendFormat": "{{event}}"
-                      },
-                      "version": "v0"
-                    },
-                    "refId": "A"
-                  }
-                }
-              ],
-              "queryOptions": {},
-              "transformations": []
-            }
-          },
-          "description": "Session-level archive outcomes and terminal failures. Unlike provider metrics, one log event represents one recorder outcome.",
-          "id": 29,
-          "links": [],
-          "title": "Terminal transcript archive outcomes",
-          "vizConfig": {
-            "group": "timeseries",
-            "kind": "VizConfig",
-            "spec": {
-              "fieldConfig": {
-                "defaults": {
-                  "unit": "short",
-                  "noValue": "Unknown \u2014 not measured",
-                  "custom": {
-                    "drawStyle": "bars",
-                    "fillOpacity": 45,
-                    "lineWidth": 2,
-                    "showPoints": "never",
-                    "spanNulls": true,
-                    "stacking": {
-                      "group": "A",
-                      "mode": "normal"
-                    },
-                    "thresholdsStyle": {
-                      "mode": "off"
-                    }
-                  }
-                },
-                "overrides": []
-              },
-              "options": {
-                "legend": {
-                  "calcs": [
-                    "lastNotNull",
-                    "max"
-                  ],
-                  "displayMode": "table",
-                  "placement": "bottom",
-                  "showLegend": true
-                },
-                "tooltip": {
-                  "mode": "multi",
-                  "sort": "desc"
-                }
-              }
-            },
-            "version": ""
-          }
-        }
-      },
-      "panel-30": {
-        "kind": "Panel",
-        "spec": {
-          "data": {
-            "kind": "QueryGroup",
-            "spec": {
-              "queries": [
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "hidden": false,
-                    "query": {
-                      "datasource": {
-                        "name": "grafanacloud-logs"
-                      },
-                      "group": "loki",
-                      "kind": "DataQuery",
-                      "spec": {
-                        "queryType": "range",
-                        "editorMode": "code",
-                        "expr": "sum by (upstream_status, instrumentation) (count_over_time({service_name=~\"soma-.+\"} | json | event=\"storage_operation_failed\" [5m]))",
-                        "legendFormat": "{{upstream_status}} \u00b7 {{instrumentation}}"
-                      },
-                      "version": "v0"
-                    },
-                    "refId": "A"
-                  }
-                }
-              ],
-              "queryOptions": {},
-              "transformations": []
-            }
-          },
-          "description": "Backend failure logs by safe upstream status and instrumentation path. Empty status means the failure did not include an HTTP response.",
-          "id": 30,
-          "links": [],
-          "title": "Backend storage failures by upstream status",
-          "vizConfig": {
-            "group": "timeseries",
-            "kind": "VizConfig",
-            "spec": {
-              "fieldConfig": {
-                "defaults": {
-                  "unit": "short",
-                  "noValue": "Unknown \u2014 not measured",
-                  "custom": {
-                    "drawStyle": "bars",
-                    "fillOpacity": 45,
-                    "lineWidth": 2,
-                    "showPoints": "never",
-                    "spanNulls": true,
-                    "stacking": {
-                      "group": "A",
-                      "mode": "normal"
-                    },
-                    "thresholdsStyle": {
-                      "mode": "off"
-                    }
-                  }
-                },
-                "overrides": []
-              },
-              "options": {
-                "legend": {
-                  "calcs": [
-                    "lastNotNull",
-                    "max"
-                  ],
-                  "displayMode": "table",
-                  "placement": "bottom",
-                  "showLegend": true
-                },
-                "tooltip": {
-                  "mode": "multi",
-                  "sort": "desc"
-                }
-              }
-            },
-            "version": ""
-          }
-        }
-      },
-      "panel-31": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -2444,7 +2175,7 @@
             }
           },
           "description": "Automatic summary status lookups in the selected range.",
-          "id": 31,
+          "id": 27,
           "links": [],
           "title": "Summary status lookups",
           "vizConfig": {
@@ -2484,7 +2215,7 @@
           }
         }
       },
-      "panel-32": {
+      "panel-28": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -2520,7 +2251,7 @@
             }
           },
           "description": "Automatic status lookup failures. A known zero is derived from the reporting metric.",
-          "id": 32,
+          "id": 28,
           "links": [],
           "title": "Failed status lookups",
           "vizConfig": {
@@ -2572,7 +2303,7 @@
           }
         }
       },
-      "panel-33": {
+      "panel-29": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -2608,7 +2339,7 @@
             }
           },
           "description": "Average database rows read per automatic lookup over 15 minutes.",
-          "id": 33,
+          "id": 29,
           "links": [],
           "title": "Rows read / lookup",
           "vizConfig": {
@@ -2648,7 +2379,7 @@
           }
         }
       },
-      "panel-34": {
+      "panel-30": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -2684,7 +2415,7 @@
             }
           },
           "description": "P95 automatic summary-status lookup latency.",
-          "id": 34,
+          "id": 30,
           "links": [],
           "title": "Lookup p95",
           "vizConfig": {
@@ -2724,7 +2455,7 @@
           }
         }
       },
-      "panel-35": {
+      "panel-31": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -2759,7 +2490,7 @@
             }
           },
           "description": "Automatic summary status lookup attempts by bounded strategy and outcome.",
-          "id": 35,
+          "id": 31,
           "links": [],
           "title": "Status lookup outcomes",
           "vizConfig": {
@@ -2807,7 +2538,7 @@
           }
         }
       },
-      "panel-36": {
+      "panel-32": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -2842,7 +2573,7 @@
             }
           },
           "description": "Database rows read by automatic summary lookups per second.",
-          "id": 36,
+          "id": 32,
           "links": [],
           "title": "Summary rows read rate",
           "vizConfig": {
@@ -2890,7 +2621,7 @@
           }
         }
       },
-      "panel-37": {
+      "panel-33": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -2925,7 +2656,7 @@
             }
           },
           "description": "P95 summary-status lookup latency split by strategy and outcome.",
-          "id": 37,
+          "id": 33,
           "links": [],
           "title": "Summary lookup p95 by outcome",
           "vizConfig": {
@@ -2973,7 +2704,7 @@
           }
         }
       },
-      "panel-38": {
+      "panel-34": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -2985,7 +2716,7 @@
             }
           },
           "description": "",
-          "id": 38,
+          "id": 34,
           "links": [],
           "title": "What summary metrics prove",
           "vizConfig": {
@@ -3005,7 +2736,7 @@
           }
         }
       },
-      "panel-39": {
+      "panel-35": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -3039,7 +2770,7 @@
             }
           },
           "description": "Structured Angie warnings and errors across web and worker runtimes.",
-          "id": 39,
+          "id": 35,
           "links": [],
           "title": "Recent Angie warnings and errors",
           "vizConfig": {
@@ -3066,7 +2797,7 @@
           }
         }
       },
-      "panel-40": {
+      "panel-36": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -3100,7 +2831,7 @@
             }
           },
           "description": "Failed callback-worker spans. Open a row to inspect the full trace.",
-          "id": 40,
+          "id": 36,
           "links": [],
           "title": "Failed Angie workflow traces",
           "vizConfig": {
@@ -3120,7 +2851,7 @@
           }
         }
       },
-      "panel-41": {
+      "panel-37": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -3155,7 +2886,7 @@
             }
           },
           "description": "Failed callback/job processing spans. This is diagnostic and attempt-level.",
-          "id": 41,
+          "id": 37,
           "links": [],
           "title": "Angie workflow span errors",
           "vizConfig": {
@@ -3203,7 +2934,7 @@
           }
         }
       },
-      "panel-42": {
+      "panel-38": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -3237,7 +2968,7 @@
             }
           },
           "description": "Workflow and archival failures in rolling five-minute windows.",
-          "id": 42,
+          "id": 38,
           "links": [],
           "title": "High-value Angie failure events",
           "vizConfig": {
@@ -3488,7 +3219,7 @@
           {
             "kind": "TabsLayoutTab",
             "spec": {
-              "title": "Storage rollout",
+              "title": "Angie storage",
               "layout": {
                 "kind": "GridLayout",
                 "spec": {
@@ -3500,8 +3231,8 @@
                           "kind": "ElementReference",
                           "name": "panel-14"
                         },
-                        "height": 7,
-                        "width": 24,
+                        "height": 5,
+                        "width": 6,
                         "x": 0,
                         "y": 0
                       }
@@ -3515,8 +3246,8 @@
                         },
                         "height": 5,
                         "width": 6,
-                        "x": 0,
-                        "y": 7
+                        "x": 6,
+                        "y": 0
                       }
                     },
                     {
@@ -3528,8 +3259,8 @@
                         },
                         "height": 5,
                         "width": 6,
-                        "x": 6,
-                        "y": 7
+                        "x": 12,
+                        "y": 0
                       }
                     },
                     {
@@ -3541,8 +3272,8 @@
                         },
                         "height": 5,
                         "width": 6,
-                        "x": 12,
-                        "y": 7
+                        "x": 18,
+                        "y": 0
                       }
                     },
                     {
@@ -3552,10 +3283,10 @@
                           "kind": "ElementReference",
                           "name": "panel-18"
                         },
-                        "height": 5,
-                        "width": 6,
-                        "x": 18,
-                        "y": 7
+                        "height": 8,
+                        "width": 12,
+                        "x": 0,
+                        "y": 5
                       }
                     },
                     {
@@ -3567,8 +3298,8 @@
                         },
                         "height": 8,
                         "width": 12,
-                        "x": 0,
-                        "y": 12
+                        "x": 12,
+                        "y": 5
                       }
                     },
                     {
@@ -3580,8 +3311,8 @@
                         },
                         "height": 8,
                         "width": 12,
-                        "x": 12,
-                        "y": 12
+                        "x": 0,
+                        "y": 13
                       }
                     },
                     {
@@ -3593,8 +3324,8 @@
                         },
                         "height": 8,
                         "width": 12,
-                        "x": 0,
-                        "y": 20
+                        "x": 12,
+                        "y": 13
                       }
                     },
                     {
@@ -3606,8 +3337,8 @@
                         },
                         "height": 8,
                         "width": 12,
-                        "x": 12,
-                        "y": 20
+                        "x": 0,
+                        "y": 21
                       }
                     },
                     {
@@ -3619,8 +3350,8 @@
                         },
                         "height": 8,
                         "width": 12,
-                        "x": 0,
-                        "y": 28
+                        "x": 12,
+                        "y": 21
                       }
                     },
                     {
@@ -3632,8 +3363,8 @@
                         },
                         "height": 8,
                         "width": 12,
-                        "x": 12,
-                        "y": 28
+                        "x": 0,
+                        "y": 29
                       }
                     },
                     {
@@ -3645,8 +3376,8 @@
                         },
                         "height": 8,
                         "width": 12,
-                        "x": 0,
-                        "y": 36
+                        "x": 12,
+                        "y": 29
                       }
                     },
                     {
@@ -3656,62 +3387,10 @@
                           "kind": "ElementReference",
                           "name": "panel-26"
                         },
-                        "height": 8,
-                        "width": 12,
-                        "x": 12,
-                        "y": 36
-                      }
-                    },
-                    {
-                      "kind": "GridLayoutItem",
-                      "spec": {
-                        "element": {
-                          "kind": "ElementReference",
-                          "name": "panel-27"
-                        },
                         "height": 11,
-                        "width": 12,
+                        "width": 24,
                         "x": 0,
-                        "y": 44
-                      }
-                    },
-                    {
-                      "kind": "GridLayoutItem",
-                      "spec": {
-                        "element": {
-                          "kind": "ElementReference",
-                          "name": "panel-28"
-                        },
-                        "height": 11,
-                        "width": 12,
-                        "x": 12,
-                        "y": 44
-                      }
-                    },
-                    {
-                      "kind": "GridLayoutItem",
-                      "spec": {
-                        "element": {
-                          "kind": "ElementReference",
-                          "name": "panel-29"
-                        },
-                        "height": 8,
-                        "width": 12,
-                        "x": 0,
-                        "y": 55
-                      }
-                    },
-                    {
-                      "kind": "GridLayoutItem",
-                      "spec": {
-                        "element": {
-                          "kind": "ElementReference",
-                          "name": "panel-30"
-                        },
-                        "height": 8,
-                        "width": 12,
-                        "x": 12,
-                        "y": 55
+                        "y": 37
                       }
                     }
                   ]
@@ -3732,7 +3411,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-31"
+                          "name": "panel-27"
                         },
                         "height": 5,
                         "width": 6,
@@ -3745,7 +3424,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-32"
+                          "name": "panel-28"
                         },
                         "height": 5,
                         "width": 6,
@@ -3758,7 +3437,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-33"
+                          "name": "panel-29"
                         },
                         "height": 5,
                         "width": 6,
@@ -3771,7 +3450,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-34"
+                          "name": "panel-30"
                         },
                         "height": 5,
                         "width": 6,
@@ -3784,7 +3463,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-35"
+                          "name": "panel-31"
                         },
                         "height": 8,
                         "width": 12,
@@ -3797,7 +3476,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-36"
+                          "name": "panel-32"
                         },
                         "height": 8,
                         "width": 12,
@@ -3810,7 +3489,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-37"
+                          "name": "panel-33"
                         },
                         "height": 8,
                         "width": 12,
@@ -3823,7 +3502,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-38"
+                          "name": "panel-34"
                         },
                         "height": 7,
                         "width": 24,
@@ -3849,7 +3528,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-39"
+                          "name": "panel-35"
                         },
                         "height": 11,
                         "width": 12,
@@ -3862,7 +3541,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-40"
+                          "name": "panel-36"
                         },
                         "height": 10,
                         "width": 12,
@@ -3875,7 +3554,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-41"
+                          "name": "panel-37"
                         },
                         "height": 8,
                         "width": 12,
@@ -3888,7 +3567,7 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-42"
+                          "name": "panel-38"
                         },
                         "height": 8,
                         "width": 12,
@@ -3906,7 +3585,7 @@
     },
     "links": [
       {
-        "title": "Storage diagnostics \u2014 full page",
+        "title": "Angie storage \u2014 full page",
         "type": "link",
         "url": "/d/soma-storage-observability/soma-storage-observability?var-workflow=session_archive&var-logical_area=session_transcripts",
         "targetBlank": false,
