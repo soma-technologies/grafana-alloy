@@ -1,0 +1,83 @@
+[
+  {
+    "uid": "soma-angie-claude-auth-failure",
+    "title": "Angie Claude authentication is failing",
+    "ruleGroup": "angie-claude-auth",
+    "folderUID": "fwtfg9",
+    "orgID": 1,
+    "condition": "C",
+    "data": [
+      {
+        "datasourceUid": "grafanacloud-prom",
+        "model": {
+          "editorMode": "code",
+          "expr": "sum(increase(angie_runtime_events_total{component=~\"account_pool|session\",event=\"failed\",reason=\"auth_failure\"}[5m])) or vector(0)",
+          "instant": true,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "A"
+        },
+        "queryType": "",
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        }
+      },
+      {
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  0
+                ],
+                "type": "gt"
+              }
+            }
+          ],
+          "expression": "A",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        },
+        "queryType": "",
+        "refId": "C",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        }
+      }
+    ],
+    "noDataState": "OK",
+    "execErrState": "Alerting",
+    "for": "1m",
+    "keep_firing_for": "4h",
+    "isPaused": false,
+    "annotations": {
+      "dashboard": "https://earnestpuma1431.grafana.net/d/soma-angie-claude-pool",
+      "description": "Angie detected a confirmed Claude OAuth failure. Pool accounts are removed from fresh-work rotation and fresh work falls back to another healthy account when available; owner-pinned resumes and non-pool sessions cannot always switch identities. Re-authenticate the affected account on the Angie Mac, verify it, then run scripts/accounts.py reset <name>. To prevent alert churn, the incident stays active for four hours after the last observed failure. Resolution does not prove the credential recovered.",
+      "runbook_url": "https://github.com/soma-technologies/angie-miller/blob/main/docs/account-rotation.md#operator-steps-once-per-account",
+      "summary": "Angie Claude authentication requires operator attention"
+    },
+    "labels": {
+      "component": "authentication",
+      "paging": "false",
+      "service": "angie-miller",
+      "severity": "critical",
+      "team": "soma"
+    },
+    "notification_settings": {
+      "receiver": "angie-battery-all-teams",
+      "group_by": [
+        "grafana_folder",
+        "alertname"
+      ],
+      "group_wait": "30s",
+      "group_interval": "5m",
+      "repeat_interval": "4h"
+    }
+  }
+]
