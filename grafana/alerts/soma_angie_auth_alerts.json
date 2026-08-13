@@ -11,7 +11,7 @@
         "datasourceUid": "grafanacloud-prom",
         "model": {
           "editorMode": "code",
-          "expr": "sum(increase(angie_runtime_events_total{component=~\"account_pool|session\",event=\"failed\",reason=\"auth_failure\"}[5m])) or vector(0)",
+          "expr": "max(angie_account_pool_auth_failed_accounts) or vector(0)",
           "instant": true,
           "intervalMs": 1000,
           "maxDataPoints": 43200,
@@ -54,11 +54,10 @@
     "noDataState": "OK",
     "execErrState": "Alerting",
     "for": "1m",
-    "keep_firing_for": "4h",
     "isPaused": false,
     "annotations": {
       "dashboard": "https://earnestpuma1431.grafana.net/d/soma-angie-claude-pool",
-      "description": "Angie detected a confirmed Claude OAuth failure. Pool accounts are removed from fresh-work rotation and fresh work falls back to another healthy account when available; owner-pinned resumes and non-pool sessions cannot always switch identities. Re-authenticate the affected account on the Angie Mac, verify it, then run scripts/accounts.py reset <name>. To prevent alert churn, the incident stays active for four hours after the last observed failure. Resolution does not prove the credential recovered.",
+      "description": "One or more Angie Claude accounts are quarantined after a confirmed pre-conversation OAuth failure. Healthy accounts remain in rotation and fresh work receives at most one queued fallback; owner-pinned resumes never switch accounts. Re-authenticate each affected account on the Angie Mac, verify it with scripts/cc_verify_interactive.py, then run scripts/accounts.py reset <name>. The alert resolves from persistent account state after recovery.",
       "runbook_url": "https://github.com/soma-technologies/angie-miller/blob/main/docs/account-rotation.md#operator-steps-once-per-account",
       "summary": "Angie Claude authentication requires operator attention"
     },
