@@ -267,14 +267,14 @@
                     "hidden": false,
                     "query": {
                       "datasource": {
-                        "name": "grafanacloud-logs"
+                        "name": "grafanacloud-prom"
                       },
-                      "group": "loki",
+                      "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
                         "queryType": "instant",
                         "editorMode": "code",
-                        "expr": "max(max_over_time({service_name=\"angie_runtime\"} | json | body=\"angie.runtime_event\" | attributes_area=\"account_pool\" | attributes_event=\"snapshot\" | unwrap attributes_at_capacity_accounts [5m]))",
+                        "expr": "(max(angie_account_auth_breaker_open_accounts) or vector(0)) + (max(angie_auth_global_breaker_open) or vector(0)) + (max(1 - angie_auth_breaker_store_available) or vector(0))",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -289,10 +289,10 @@
               "transformations": []
             }
           },
-          "description": "Highest number of accounts reporting at capacity over five minutes.",
+          "description": "Zero is healthy. A positive value means an account/global authentication breaker is open or the shared breaker store is unavailable.",
           "id": 42,
           "links": [],
-          "title": "At-capacity accounts",
+          "title": "Auth breaker signals",
           "vizConfig": {
             "group": "stat",
             "kind": "VizConfig",
@@ -306,19 +306,11 @@
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "text"
-                      },
-                      {
-                        "color": "green",
-                        "value": 0
-                      },
-                      {
-                        "color": "orange",
-                        "value": 1
+                        "color": "green"
                       },
                       {
                         "color": "red",
-                        "value": 10
+                        "value": 1
                       }
                     ]
                   }
@@ -590,6 +582,50 @@
                     },
                     "refId": "K"
                   }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "max by (account) (angie_account_auth_breaker_open and on (account, instance) topk by (account) (1, timestamp(angie_account_auth_breaker_open)))",
+                        "instant": true,
+                        "format": "table",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "L"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafanacloud-prom"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "max by (account) (angie_account_auth_breaker_half_open and on (account, instance) topk by (account) (1, timestamp(angie_account_auth_breaker_half_open)))",
+                        "instant": true,
+                        "format": "table",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "M"
+                  }
                 }
               ],
               "queryOptions": {},
@@ -622,7 +658,9 @@
                         "Time 8": true,
                         "Time 9": true,
                         "Time 10": true,
-                        "Time 11": true
+                        "Time 11": true,
+                        "Time 12": true,
+                        "Time 13": true
                       },
                       "indexByName": {
                         "account": 0,
@@ -636,7 +674,9 @@
                         "Value #G": 8,
                         "Value #H": 9,
                         "Value #J": 10,
-                        "Value #K": 11
+                        "Value #K": 11,
+                        "Value #L": 12,
+                        "Value #M": 13
                       },
                       "renameByName": {
                         "account": "Account",
@@ -650,7 +690,9 @@
                         "Value #H": "Pool cooldown",
                         "Value #I": "Eligible",
                         "Value #J": "Disabled",
-                        "Value #K": "Usage sample age"
+                        "Value #K": "Usage sample age",
+                        "Value #L": "Auth open",
+                        "Value #M": "Auth probe"
                       }
                     }
                   }
@@ -932,6 +974,62 @@
                     "matcher": {
                       "id": "byName",
                       "options": "Disabled"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "type": "value",
+                            "options": {
+                              "0": {
+                                "text": "No",
+                                "color": "green",
+                                "index": 0
+                              },
+                              "1": {
+                                "text": "Yes",
+                                "color": "red",
+                                "index": 1
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Auth open"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "type": "value",
+                            "options": {
+                              "0": {
+                                "text": "No",
+                                "color": "green",
+                                "index": 0
+                              },
+                              "1": {
+                                "text": "Yes",
+                                "color": "red",
+                                "index": 1
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Auth probe"
                     },
                     "properties": [
                       {
@@ -1368,7 +1466,7 @@
               },
               "options": {
                 "mode": "markdown",
-                "content": "**Read the table first.** `5h used` is the rolling session window and `7d used` is the weekly window. `Available` is concurrency headroom; `Eligible` is the scheduling answer after disabled, cooldown, and concurrency checks. Usage at or above **95%** normally creates a pool hold until the relevant reset."
+                "content": "**Read the table first.** `5h used` is the rolling session window and `7d used` is the weekly window. `Available` is concurrency headroom; `Eligible` is the scheduling answer after disabled, auth breaker, cooldown, and concurrency checks. `Auth open` persists until a verified recovery command closes it. Usage at or above **95%** normally creates a pool hold until the relevant reset."
               }
             },
             "version": ""

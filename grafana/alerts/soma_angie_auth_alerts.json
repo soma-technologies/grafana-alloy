@@ -1,7 +1,7 @@
 [
   {
     "uid": "soma-angie-claude-auth-failure",
-    "title": "Angie Claude authentication is failing",
+    "title": "Angie Claude authentication circuit is open",
     "ruleGroup": "angie-claude-auth",
     "folderUID": "fwtfg9",
     "orgID": 1,
@@ -11,7 +11,7 @@
         "datasourceUid": "grafanacloud-prom",
         "model": {
           "editorMode": "code",
-          "expr": "sum(increase(angie_runtime_events_total{component=~\"account_pool|session\",event=\"failed\",reason=\"auth_failure\"}[5m])) or vector(0)",
+          "expr": "(max(angie_account_auth_breaker_open_accounts) or vector(0)) + (max(angie_auth_global_breaker_open) or vector(0)) + (max(1 - angie_auth_breaker_store_available) or vector(0))",
           "instant": true,
           "intervalMs": 1000,
           "maxDataPoints": 43200,
@@ -54,13 +54,12 @@
     "noDataState": "OK",
     "execErrState": "Alerting",
     "for": "1m",
-    "keep_firing_for": "4h",
     "isPaused": false,
     "annotations": {
       "dashboard": "https://earnestpuma1431.grafana.net/d/soma-angie-claude-pool",
-      "description": "Angie detected a confirmed Claude OAuth failure. Pool accounts are removed from fresh-work rotation and fresh work falls back to another healthy account when available; owner-pinned resumes and non-pool sessions cannot always switch identities. Re-authenticate the affected account on the Angie Mac, verify it, then run scripts/accounts.py reset <name>. To prevent alert churn, the incident stays active for four hours after the last observed failure. Resolution does not prove the credential recovered.",
+      "description": "Angie's persistent Claude authentication breaker is open or its state store is unavailable. One original account may be isolated and fresh work gets at most one replacement attempt; two distinct confirmed account failures open the global breaker and queue new pool work. Re-authenticate an account on the Angie Mac, source angie.env, then run scripts/accounts.py recover <name>. The command verifies the exact login before atomically closing the account/global breaker. Plain reset cannot close it.",
       "runbook_url": "https://github.com/soma-technologies/angie-miller/blob/main/docs/account-rotation.md#operator-steps-once-per-account",
-      "summary": "Angie Claude authentication requires operator attention"
+      "summary": "Angie Claude authentication circuit is open"
     },
     "labels": {
       "component": "authentication",

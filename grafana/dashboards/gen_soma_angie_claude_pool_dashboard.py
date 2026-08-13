@@ -131,6 +131,16 @@ def account_capacity_table():
             instant=True,
             refId="K",
         ),
+        target(
+            latest_account_metric("angie_account_auth_breaker_open"),
+            instant=True,
+            refId="L",
+        ),
+        target(
+            latest_account_metric("angie_account_auth_breaker_half_open"),
+            instant=True,
+            refId="M",
+        ),
     ]
     result = panel(
         "table",
@@ -154,7 +164,7 @@ def account_capacity_table():
                 "excludeByName": {
                     "__name__": True,
                     "Time": True,
-                    **{f"Time {index}": True for index in range(1, 12)},
+                    **{f"Time {index}": True for index in range(1, 14)},
                 },
                 "indexByName": {
                     "account": 0,
@@ -169,6 +179,8 @@ def account_capacity_table():
                     "Value #H": 9,
                     "Value #J": 10,
                     "Value #K": 11,
+                    "Value #L": 12,
+                    "Value #M": 13,
                 },
                 "renameByName": {
                     "account": "Account",
@@ -183,6 +195,8 @@ def account_capacity_table():
                     "Value #I": "Eligible",
                     "Value #J": "Disabled",
                     "Value #K": "Usage sample age",
+                    "Value #L": "Auth open",
+                    "Value #M": "Auth probe",
                 },
             },
         },
@@ -265,6 +279,8 @@ def account_capacity_table():
         ],
         field_override("Eligible", [boolean_mapping]),
         field_override("Disabled", [disabled_mapping]),
+        field_override("Auth open", [disabled_mapping]),
+        field_override("Auth probe", [disabled_mapping]),
     ]
     return result
 
@@ -306,14 +322,19 @@ status = [
         ],
     ),
     stat(
-        "At-capacity accounts",
+        "Auth breaker signals",
         18,
-        f'max(max_over_time({POOL} | attributes_event="snapshot" '
-        '| unwrap attributes_at_capacity_accounts [5m]))',
-        "Highest number of accounts reporting at capacity over five minutes.",
-        datasource=LOKI,
+        "(max(angie_account_auth_breaker_open_accounts) or vector(0)) + "
+        "(max(angie_auth_global_breaker_open) or vector(0)) + "
+        "(max(1 - angie_auth_breaker_store_available) or vector(0))",
+        "Zero is healthy. A positive value means an account/global authentication breaker "
+        "is open or the shared breaker store is unavailable.",
+        datasource=PROM,
         decimals=0,
-        thresholds=COUNT_STEPS,
+        thresholds=[
+            {"color": "green"},
+            {"color": "red", "value": 1},
+        ],
     ),
     account_capacity_table(),
     account_usage_timeseries(
@@ -357,7 +378,8 @@ status = [
         32,
         "**Read the table first.** `5h used` is the rolling session window and `7d used` is the "
         "weekly window. `Available` is concurrency headroom; `Eligible` is the scheduling "
-        "answer after disabled, cooldown, and concurrency checks. Usage at or above **95%** "
+        "answer after disabled, auth breaker, cooldown, and concurrency checks. `Auth open` "
+        "persists until a verified recovery command closes it. Usage at or above **95%** "
         "normally creates a pool hold until the relevant reset.",
     ),
 ]
