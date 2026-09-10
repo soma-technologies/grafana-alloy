@@ -1,0 +1,242 @@
+[
+  {
+    "uid": "soma-angie-pool-eligible-low",
+    "title": "Angie Claude pool is running out of eligible accounts",
+    "ruleGroup": "angie-claude-pool",
+    "folderUID": "fwtfg9",
+    "orgID": 1,
+    "condition": "C",
+    "data": [
+      {
+        "datasourceUid": "grafanacloud-prom",
+        "model": {
+          "editorMode": "code",
+          "expr": "max(angie_account_pool_eligible_accounts)",
+          "instant": true,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "A"
+        },
+        "queryType": "",
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        }
+      },
+      {
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  5
+                ],
+                "type": "lt"
+              }
+            }
+          ],
+          "expression": "A",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        },
+        "queryType": "",
+        "refId": "C",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        }
+      }
+    ],
+    "noDataState": "OK",
+    "execErrState": "Alerting",
+    "for": "10m",
+    "isPaused": false,
+    "annotations": {
+      "dashboard": "https://earnestpuma1431.grafana.net/d/soma-angie-claude-pool",
+      "description": "Fewer than 5 of the configured Angie Claude accounts have been eligible for 10 minutes (not disabled, not in cooldown, not at capacity). At 0 every new session queues until an account frees up. Check the pool dashboard for which accounts are in cooldown or disabled; rate-limit cooldowns clear on their own, disabled accounts need re-authentication and scripts/accounts.py reset <name> on the Angie Mac.",
+      "runbook_url": "https://github.com/soma-technologies/angie-miller/blob/main/docs/account-rotation.md",
+      "summary": "Angie Claude pool has fewer than 5 eligible accounts"
+    },
+    "labels": {
+      "component": "account_pool",
+      "paging": "false",
+      "service": "angie-miller",
+      "severity": "critical",
+      "team": "soma"
+    },
+    "notification_settings": {
+      "receiver": "soma-engineering-all",
+      "group_by": [
+        "grafana_folder",
+        "alertname"
+      ],
+      "group_wait": "30s",
+      "group_interval": "5m",
+      "repeat_interval": "4h"
+    }
+  },
+  {
+    "uid": "soma-angie-callback-lost",
+    "title": "Angie dropped a session result",
+    "ruleGroup": "angie-claude-pool",
+    "folderUID": "fwtfg9",
+    "orgID": 1,
+    "condition": "C",
+    "data": [
+      {
+        "datasourceUid": "grafanacloud-prom",
+        "model": {
+          "editorMode": "code",
+          "expr": "sum(increase(angie_runtime_events_total{component=\"callback\",reason=\"lost\"}[15m])) or vector(0)",
+          "instant": true,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "A"
+        },
+        "queryType": "",
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 900,
+          "to": 0
+        }
+      },
+      {
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  0
+                ],
+                "type": "gt"
+              }
+            }
+          ],
+          "expression": "A",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        },
+        "queryType": "",
+        "refId": "C",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        }
+      }
+    ],
+    "noDataState": "OK",
+    "execErrState": "Alerting",
+    "for": "0s",
+    "isPaused": false,
+    "annotations": {
+      "dashboard": "https://earnestpuma1431.grafana.net/d/soma-angie-claude-pool",
+      "description": "A finished Angie session could not deliver its result to the backend and could not be persisted to failed_callbacks/ either, so the result is gone. This means the Mac disk or /tmp/angie_sessions is not writable. Check disk space and permissions on the Angie Mac; the affected session id is in the CALLBACK_LOST server log line.",
+      "runbook_url": "https://github.com/soma-technologies/angie-miller/blob/main/docs/angie-observability.md",
+      "summary": "Angie lost a session result with no on-disk copy"
+    },
+    "labels": {
+      "component": "callback",
+      "paging": "false",
+      "service": "angie-miller",
+      "severity": "critical",
+      "team": "soma"
+    },
+    "notification_settings": {
+      "receiver": "soma-engineering-all",
+      "group_by": [
+        "grafana_folder",
+        "alertname"
+      ],
+      "group_wait": "30s",
+      "group_interval": "5m",
+      "repeat_interval": "4h"
+    }
+  },
+  {
+    "uid": "soma-angie-callback-permanent-failures",
+    "title": "Angie session results are being rejected by the backend",
+    "ruleGroup": "angie-claude-pool",
+    "folderUID": "fwtfg9",
+    "orgID": 1,
+    "condition": "C",
+    "data": [
+      {
+        "datasourceUid": "grafanacloud-prom",
+        "model": {
+          "editorMode": "code",
+          "expr": "sum(increase(angie_runtime_events_total{component=\"callback\",reason=\"permanent\"}[1h])) or vector(0)",
+          "instant": true,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "A"
+        },
+        "queryType": "",
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 3600,
+          "to": 0
+        }
+      },
+      {
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  5
+                ],
+                "type": "gt"
+              }
+            }
+          ],
+          "expression": "A",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        },
+        "queryType": "",
+        "refId": "C",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        }
+      }
+    ],
+    "noDataState": "OK",
+    "execErrState": "Alerting",
+    "for": "5m",
+    "isPaused": false,
+    "annotations": {
+      "dashboard": "https://earnestpuma1431.grafana.net/d/soma-angie-claude-pool",
+      "description": "More than 5 finished Angie sessions in the last hour got a permanent (4xx) rejection from the backend callback endpoint. Those results are kept on the Mac as callback_failed_permanent and are not retried, so the Slack reply or lead update never happens. Check the backend deploy and the callback URL in angie.env; replay from the Mac with the ops retry endpoint once the cause is fixed.",
+      "runbook_url": "https://github.com/soma-technologies/angie-miller/blob/main/docs/angie-observability.md",
+      "summary": "Backend is permanently rejecting Angie session callbacks"
+    },
+    "labels": {
+      "component": "callback",
+      "paging": "false",
+      "service": "angie-miller",
+      "severity": "warning",
+      "team": "soma"
+    },
+    "notification_settings": {
+      "receiver": "soma-engineering-all",
+      "group_by": [
+        "grafana_folder",
+        "alertname"
+      ],
+      "group_wait": "30s",
+      "group_interval": "5m",
+      "repeat_interval": "4h"
+    }
+  }
+]
