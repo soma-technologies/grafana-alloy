@@ -1,0 +1,81 @@
+[
+  {
+    "uid": "soma-campaign-toggle-lock-held",
+    "title": "Campaign ON/OFF blocked behind a held write lock",
+    "ruleGroup": "campaign-toggles",
+    "folderUID": "fwtfg9",
+    "orgID": 1,
+    "condition": "C",
+    "data": [
+      {
+        "datasourceUid": "grafanacloud-logs",
+        "model": {
+          "editorMode": "code",
+          "expr": "sum by (campaign_id, platform) (count_over_time({service_namespace=\"soma\", deployment_environment=\"production\"} |= \"Campaign toggle lock unavailable\" | json campaign_id, platform [2m]))",
+          "queryType": "instant",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "A"
+        },
+        "queryType": "instant",
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 120,
+          "to": 0
+        }
+      },
+      {
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  40
+                ],
+                "type": "gt"
+              }
+            }
+          ],
+          "expression": "A",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        },
+        "queryType": "",
+        "refId": "C",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        }
+      }
+    ],
+    "noDataState": "OK",
+    "execErrState": "Alerting",
+    "for": "0s",
+    "isPaused": false,
+    "annotations": {
+      "summary": "{{ $labels.platform }} campaign {{ $labels.campaign_id }} could not get its ON/OFF write lock for over ~30s",
+      "description": "More than 40 'Campaign toggle lock unavailable' lines in 2 minutes for one campaign: about 30s of continuous polling, so a pause or reopen is waiting on another holder. Before backend #1770 a cancelled scheduled enable kept this lock for its full 300s safety window. A firing alert means a pause or reopen is stuck and the vendor may be ON with nobody free, or OFF while a rep is free. Check the campaign_toggle_locks row (acquired_at, agent_key) and the ingestion/scheduler logs for the campaign around the alert time.",
+      "runbook_url": "https://github.com/soma-technologies/backend/pull/1770"
+    },
+    "labels": {
+      "component": "campaign_toggles",
+      "paging": "false",
+      "service": "soma-backend",
+      "severity": "critical",
+      "team": "soma"
+    },
+    "notification_settings": {
+      "receiver": "soma-engineering-all",
+      "group_by": [
+        "grafana_folder",
+        "alertname"
+      ],
+      "group_wait": "30s",
+      "group_interval": "5m",
+      "repeat_interval": "4h"
+    }
+  }
+]
