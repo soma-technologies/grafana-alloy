@@ -1,0 +1,318 @@
+[
+  {
+    "uid": "soma-client-checkout-submitted-not-paid",
+    "title": "Sign & Pay: payment submitted, no Ascend paid webhook within 2 h",
+    "ruleGroup": "client-checkout",
+    "folderUID": "fwtfg9",
+    "orgID": 1,
+    "condition": "C",
+    "data": [
+      {
+        "datasourceUid": "grafanacloud-prom",
+        "queryType": "",
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        },
+        "model": {
+          "editorMode": "code",
+          "expr": "((sum(increase(soma_client_checkout_events_total{event=~\"pay_submitted\"}[24h] offset 2h) and soma_client_checkout_events_total{event=~\"pay_submitted\"} offset 26h) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"pay_submitted\"}[24h] offset 2h) unless soma_client_checkout_events_total{event=~\"pay_submitted\"} offset 26h) or vector(0))) - ((sum(increase(soma_client_checkout_events_total{event=~\"webhook_paid\"}[26h]) and soma_client_checkout_events_total{event=~\"webhook_paid\"} offset 26h) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"webhook_paid\"}[26h]) unless soma_client_checkout_events_total{event=~\"webhook_paid\"} offset 26h) or vector(0)))",
+          "instant": true,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "A"
+        }
+      },
+      {
+        "datasourceUid": "__expr__",
+        "queryType": "",
+        "refId": "C",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  0.5
+                ],
+                "type": "gt"
+              }
+            }
+          ],
+          "expression": "A",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        }
+      }
+    ],
+    "noDataState": "OK",
+    "execErrState": "Alerting",
+    "for": "0s",
+    "isPaused": false,
+    "annotations": {
+      "summary": "{{ $value }} Sign & Pay payment(s) submitted over 2 h ago without a paid webhook",
+      "description": "More pay_submitted events 2-26 h ago than webhook_paid events in the last 26 h: Ascend accepted a payment form but never told us it was paid. Open the checkout in the Hub and look the program up in Ascend before doing anything else; never re-run the payment. Counts are events, not checkouts, so one paid fallback can hide a missing one.",
+      "runbook_url": "https://earnestpuma1431.grafana.net/d/soma-client-checkout"
+    },
+    "labels": {
+      "component": "client_checkout",
+      "paging": "false",
+      "service": "soma-backend",
+      "severity": "critical",
+      "team": "soma"
+    },
+    "notification_settings": {
+      "receiver": "soma-ascend-payments",
+      "group_by": [
+        "grafana_folder",
+        "alertname"
+      ],
+      "group_wait": "30s",
+      "group_interval": "5m",
+      "repeat_interval": "4h"
+    }
+  },
+  {
+    "uid": "soma-client-checkout-pay-failed",
+    "title": "Sign & Pay: payment failed or unknown",
+    "ruleGroup": "client-checkout",
+    "folderUID": "fwtfg9",
+    "orgID": 1,
+    "condition": "C",
+    "data": [
+      {
+        "datasourceUid": "grafanacloud-prom",
+        "queryType": "",
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        },
+        "model": {
+          "editorMode": "code",
+          "expr": "((sum(increase(soma_client_checkout_events_total{event=~\"pay_failed|unknown\"}[15m]) and soma_client_checkout_events_total{event=~\"pay_failed|unknown\"} offset 15m) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"pay_failed|unknown\"}[15m]) unless soma_client_checkout_events_total{event=~\"pay_failed|unknown\"} offset 15m) or vector(0)))",
+          "instant": true,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "A"
+        }
+      },
+      {
+        "datasourceUid": "__expr__",
+        "queryType": "",
+        "refId": "C",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  0.5
+                ],
+                "type": "gt"
+              }
+            }
+          ],
+          "expression": "A",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        }
+      }
+    ],
+    "noDataState": "OK",
+    "execErrState": "Alerting",
+    "for": "0s",
+    "isPaused": false,
+    "annotations": {
+      "summary": "{{ $value }} Sign & Pay payment(s) failed or went unknown in the last 15 min",
+      "description": "The payer failed, Ascend's total did not match the signed terms, or a payment stuck in paying for 15 min was marked unknown. The client was shown Ascend's own link. An unknown may already be charged: check Ascend before anything is retried. The backend also posts each checkout to this channel with its id.",
+      "runbook_url": "https://earnestpuma1431.grafana.net/d/soma-client-checkout"
+    },
+    "labels": {
+      "component": "client_checkout",
+      "paging": "false",
+      "service": "soma-backend",
+      "severity": "critical",
+      "team": "soma"
+    },
+    "notification_settings": {
+      "receiver": "soma-ascend-payments",
+      "group_by": [
+        "grafana_folder",
+        "alertname"
+      ],
+      "group_wait": "30s",
+      "group_interval": "5m",
+      "repeat_interval": "4h"
+    }
+  },
+  {
+    "uid": "soma-client-checkout-canary-failed",
+    "title": "Sign & Pay: daily Ascend canary failed",
+    "ruleGroup": "client-checkout",
+    "folderUID": "fwtfg9",
+    "orgID": 1,
+    "condition": "C",
+    "data": [
+      {
+        "datasourceUid": "grafanacloud-prom",
+        "queryType": "",
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        },
+        "model": {
+          "editorMode": "code",
+          "expr": "((sum(increase(soma_client_checkout_events_total{event=~\"canary_failed\"}[1h]) and soma_client_checkout_events_total{event=~\"canary_failed\"} offset 1h) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"canary_failed\"}[1h]) unless soma_client_checkout_events_total{event=~\"canary_failed\"} offset 1h) or vector(0)))",
+          "instant": true,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "A"
+        }
+      },
+      {
+        "datasourceUid": "__expr__",
+        "queryType": "",
+        "refId": "C",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  0.5
+                ],
+                "type": "gt"
+              }
+            }
+          ],
+          "expression": "A",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        }
+      }
+    ],
+    "noDataState": "OK",
+    "execErrState": "Alerting",
+    "for": "0s",
+    "isPaused": false,
+    "annotations": {
+      "summary": "The Sign & Pay canary could not reach Ascend's card step",
+      "description": "The daily dry run on a sandbox Ascend link failed before the card step, so the payer is likely broken for every client (Ascend's checkout changed or is down). Clients still get Ascend's own link as the fallback. Check the canary logs.",
+      "runbook_url": "https://earnestpuma1431.grafana.net/d/soma-client-checkout"
+    },
+    "labels": {
+      "component": "client_checkout",
+      "paging": "false",
+      "service": "soma-backend",
+      "severity": "critical",
+      "team": "soma"
+    },
+    "notification_settings": {
+      "receiver": "soma-engineering-all",
+      "group_by": [
+        "grafana_folder",
+        "alertname"
+      ],
+      "group_wait": "30s",
+      "group_interval": "5m",
+      "repeat_interval": "4h"
+    }
+  },
+  {
+    "uid": "soma-client-checkout-canary-missing",
+    "title": "Sign & Pay: no canary_ok by 6:30 am ET",
+    "ruleGroup": "client-checkout",
+    "folderUID": "fwtfg9",
+    "orgID": 1,
+    "condition": "C",
+    "data": [
+      {
+        "datasourceUid": "grafanacloud-prom",
+        "queryType": "",
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        },
+        "model": {
+          "editorMode": "code",
+          "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"canary_ok\"}[6h]) and soma_client_checkout_events_total{event=~\"canary_ok\"} offset 6h) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"canary_ok\"}[6h]) unless soma_client_checkout_events_total{event=~\"canary_ok\"} offset 6h) or vector(0))) < bool 0.5) and on() (((hour() * 60 + minute() + 1140 + 60 * clamp_max((month() >= bool 4) * (month() <= bool 10) + (month() == bool 3) * ((day_of_month() - day_of_week()) >= bool 8) + (month() == bool 11) * ((day_of_month() - day_of_week()) < bool 1), 1)) % 1440) >= 390 < 720)",
+          "instant": true,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "A"
+        }
+      },
+      {
+        "datasourceUid": "__expr__",
+        "queryType": "",
+        "refId": "C",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  0.5
+                ],
+                "type": "gt"
+              }
+            }
+          ],
+          "expression": "A",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        }
+      }
+    ],
+    "noDataState": "OK",
+    "execErrState": "Alerting",
+    "for": "0s",
+    "isPaused": false,
+    "annotations": {
+      "summary": "No Sign & Pay canary_ok since the 6 am ET run",
+      "description": "No canary_ok event in the last 6 h, checked from 6:30 am to noon ET: the daily canary did not run or did not finish, so nobody has checked that Ascend's checkout still works today. Check the scheduler that runs policy_book/ascend_daily.",
+      "runbook_url": "https://earnestpuma1431.grafana.net/d/soma-client-checkout"
+    },
+    "labels": {
+      "component": "client_checkout",
+      "paging": "false",
+      "service": "soma-backend",
+      "severity": "warning",
+      "team": "soma"
+    },
+    "notification_settings": {
+      "receiver": "soma-engineering-all",
+      "group_by": [
+        "grafana_folder",
+        "alertname"
+      ],
+      "group_wait": "30s",
+      "group_interval": "5m",
+      "repeat_interval": "4h"
+    }
+  }
+]
