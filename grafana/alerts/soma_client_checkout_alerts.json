@@ -17,7 +17,7 @@
         },
         "model": {
           "editorMode": "code",
-          "expr": "((sum(increase(soma_client_checkout_events_total{event=~\"pay_submitted\"}[24h] offset 2h) and soma_client_checkout_events_total{event=~\"pay_submitted\"} offset 26h) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"pay_submitted\"}[24h] offset 2h) unless soma_client_checkout_events_total{event=~\"pay_submitted\"} offset 26h) or vector(0))) - ((sum(increase(soma_client_checkout_events_total{event=~\"webhook_paid\"}[26h]) and soma_client_checkout_events_total{event=~\"webhook_paid\"} offset 26h) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"webhook_paid\"}[26h]) unless soma_client_checkout_events_total{event=~\"webhook_paid\"} offset 26h) or vector(0)))",
+          "expr": "((sum(increase(soma_client_checkout_events_total{event=~\"pay_submitted\"}[24h] offset 2h) and last_over_time(soma_client_checkout_events_total{event=~\"pay_submitted\"}[1h] offset 26h)) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"pay_submitted\"}[24h] offset 2h) unless last_over_time(soma_client_checkout_events_total{event=~\"pay_submitted\"}[1h] offset 26h)) or vector(0))) - ((sum(increase(soma_client_checkout_events_total{event=~\"webhook_paid\"}[26h]) and last_over_time(soma_client_checkout_events_total{event=~\"webhook_paid\"}[1h] offset 26h)) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"webhook_paid\"}[26h]) unless last_over_time(soma_client_checkout_events_total{event=~\"webhook_paid\"}[1h] offset 26h)) or vector(0)))",
           "instant": true,
           "intervalMs": 1000,
           "maxDataPoints": 43200,
@@ -96,7 +96,7 @@
         },
         "model": {
           "editorMode": "code",
-          "expr": "((sum(increase(soma_client_checkout_events_total{event=~\"pay_failed|unknown\"}[15m]) and soma_client_checkout_events_total{event=~\"pay_failed|unknown\"} offset 15m) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"pay_failed|unknown\"}[15m]) unless soma_client_checkout_events_total{event=~\"pay_failed|unknown\"} offset 15m) or vector(0)))",
+          "expr": "((sum(increase(soma_client_checkout_events_total{event=~\"pay_failed|unknown\"}[15m]) and last_over_time(soma_client_checkout_events_total{event=~\"pay_failed|unknown\"}[1h] offset 15m)) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"pay_failed|unknown\"}[15m]) unless last_over_time(soma_client_checkout_events_total{event=~\"pay_failed|unknown\"}[1h] offset 15m)) or vector(0)))",
           "instant": true,
           "intervalMs": 1000,
           "maxDataPoints": 43200,
@@ -175,7 +175,7 @@
         },
         "model": {
           "editorMode": "code",
-          "expr": "((sum(increase(soma_client_checkout_events_total{event=~\"canary_failed\"}[1h]) and soma_client_checkout_events_total{event=~\"canary_failed\"} offset 1h) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"canary_failed\"}[1h]) unless soma_client_checkout_events_total{event=~\"canary_failed\"} offset 1h) or vector(0)))",
+          "expr": "((sum(increase(soma_client_checkout_events_total{event=~\"canary_failed\"}[1h]) and last_over_time(soma_client_checkout_events_total{event=~\"canary_failed\"}[1h] offset 1h)) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"canary_failed\"}[1h]) unless last_over_time(soma_client_checkout_events_total{event=~\"canary_failed\"}[1h] offset 1h)) or vector(0)))",
           "instant": true,
           "intervalMs": 1000,
           "maxDataPoints": 43200,
@@ -254,7 +254,7 @@
         },
         "model": {
           "editorMode": "code",
-          "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"canary_ok\"}[6h]) and soma_client_checkout_events_total{event=~\"canary_ok\"} offset 6h) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"canary_ok\"}[6h]) unless soma_client_checkout_events_total{event=~\"canary_ok\"} offset 6h) or vector(0))) < bool 0.5) and on() (((hour() * 60 + minute() + 1140 + 60 * clamp_max((month() >= bool 4) * (month() <= bool 10) + (month() == bool 3) * ((day_of_month() - day_of_week()) >= bool 8) + (month() == bool 11) * ((day_of_month() - day_of_week()) < bool 1), 1)) % 1440) >= 390 < 720)",
+          "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"canary_ok\"}[6h]) and last_over_time(soma_client_checkout_events_total{event=~\"canary_ok\"}[1h] offset 6h)) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"canary_ok\"}[6h]) unless last_over_time(soma_client_checkout_events_total{event=~\"canary_ok\"}[1h] offset 6h)) or vector(0))) < bool 0.5) and on() (((hour() * 60 + minute() + 1140 + 60 * clamp_max((month() >= bool 4) * (month() <= bool 10) + (month() == bool 3) * ((day_of_month() - day_of_week()) >= bool 8) + (month() == bool 11) * ((day_of_month() - day_of_week()) < bool 1), 1)) % 1440) >= 390 < 720)",
           "instant": true,
           "intervalMs": 1000,
           "maxDataPoints": 43200,

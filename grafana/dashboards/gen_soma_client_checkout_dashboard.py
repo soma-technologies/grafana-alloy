@@ -42,18 +42,19 @@ def events_in(event_re, window, offset="", start=None):
     ``start`` is ``offset + window`` written as one duration (PromQL offsets
     take no arithmetic); it defaults to ``window`` when there is no offset.
 
-    A counter series first seen inside the window starts above zero, and
-    ``increase()`` drops that first count. Low-volume events (one checkout, one
-    canary a day) would read 0, so a series born in the window adds its last
-    value there (``last_over_time``, so a process that died in the window counts).
+    ``increase()`` drops a new series' first count, so one checkout or canary a day
+    would read 0: a series born in the window adds its ``last_over_time`` value (a
+    process that died in the window still counts). "Born" looks back 1 h, so a
+    telemetry gap at the window start does not re-count an old series' total.
     """
     sel = f'{METRIC}{{event=~"{event_re}"}}'
     at = f" offset {offset}" if offset else ""
     before = start or window
     assert start or not offset, "an offset needs its start"
+    existed = f"last_over_time({sel}[1h] offset {before})"
     return (
-        f"((sum(increase({sel}[{window}]{at}) and {sel} offset {before}) or vector(0))"
-        f" + (sum(last_over_time({sel}[{window}]{at}) unless {sel} offset {before})"
+        f"((sum(increase({sel}[{window}]{at}) and {existed}) or vector(0))"
+        f" + (sum(last_over_time({sel}[{window}]{at}) unless {existed})"
         " or vector(0)))"
     )
 

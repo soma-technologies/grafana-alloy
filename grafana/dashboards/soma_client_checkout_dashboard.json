@@ -34,7 +34,7 @@
                       "spec": {
                         "queryType": "instant",
                         "editorMode": "code",
-                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"page_view\"}[$__range]) and soma_client_checkout_events_total{event=~\"page_view\"} offset $__range) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"page_view\"}[$__range]) unless soma_client_checkout_events_total{event=~\"page_view\"} offset $__range) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
+                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"page_view\"}[$__range]) and last_over_time(soma_client_checkout_events_total{event=~\"page_view\"}[1h] offset $__range)) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"page_view\"}[$__range]) unless last_over_time(soma_client_checkout_events_total{event=~\"page_view\"}[1h] offset $__range)) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -114,7 +114,7 @@
                       "spec": {
                         "queryType": "instant",
                         "editorMode": "code",
-                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"signed\"}[$__range]) and soma_client_checkout_events_total{event=~\"signed\"} offset $__range) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"signed\"}[$__range]) unless soma_client_checkout_events_total{event=~\"signed\"} offset $__range) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
+                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"signed\"}[$__range]) and last_over_time(soma_client_checkout_events_total{event=~\"signed\"}[1h] offset $__range)) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"signed\"}[$__range]) unless last_over_time(soma_client_checkout_events_total{event=~\"signed\"}[1h] offset $__range)) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -194,7 +194,7 @@
                       "spec": {
                         "queryType": "instant",
                         "editorMode": "code",
-                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"pay_started\"}[$__range]) and soma_client_checkout_events_total{event=~\"pay_started\"} offset $__range) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"pay_started\"}[$__range]) unless soma_client_checkout_events_total{event=~\"pay_started\"} offset $__range) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
+                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"pay_started\"}[$__range]) and last_over_time(soma_client_checkout_events_total{event=~\"pay_started\"}[1h] offset $__range)) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"pay_started\"}[$__range]) unless last_over_time(soma_client_checkout_events_total{event=~\"pay_started\"}[1h] offset $__range)) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -274,7 +274,7 @@
                       "spec": {
                         "queryType": "instant",
                         "editorMode": "code",
-                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"pay_submitted\"}[$__range]) and soma_client_checkout_events_total{event=~\"pay_submitted\"} offset $__range) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"pay_submitted\"}[$__range]) unless soma_client_checkout_events_total{event=~\"pay_submitted\"} offset $__range) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
+                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"pay_submitted\"}[$__range]) and last_over_time(soma_client_checkout_events_total{event=~\"pay_submitted\"}[1h] offset $__range)) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"pay_submitted\"}[$__range]) unless last_over_time(soma_client_checkout_events_total{event=~\"pay_submitted\"}[1h] offset $__range)) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -354,7 +354,7 @@
                       "spec": {
                         "queryType": "instant",
                         "editorMode": "code",
-                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"pay_failed\"}[$__range]) and soma_client_checkout_events_total{event=~\"pay_failed\"} offset $__range) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"pay_failed\"}[$__range]) unless soma_client_checkout_events_total{event=~\"pay_failed\"} offset $__range) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
+                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"pay_failed\"}[$__range]) and last_over_time(soma_client_checkout_events_total{event=~\"pay_failed\"}[1h] offset $__range)) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"pay_failed\"}[$__range]) unless last_over_time(soma_client_checkout_events_total{event=~\"pay_failed\"}[1h] offset $__range)) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -442,7 +442,7 @@
                       "spec": {
                         "queryType": "instant",
                         "editorMode": "code",
-                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"fallback_shown\"}[$__range]) and soma_client_checkout_events_total{event=~\"fallback_shown\"} offset $__range) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"fallback_shown\"}[$__range]) unless soma_client_checkout_events_total{event=~\"fallback_shown\"} offset $__range) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
+                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"fallback_shown\"}[$__range]) and last_over_time(soma_client_checkout_events_total{event=~\"fallback_shown\"}[1h] offset $__range)) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"fallback_shown\"}[$__range]) unless last_over_time(soma_client_checkout_events_total{event=~\"fallback_shown\"}[1h] offset $__range)) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -530,7 +530,7 @@
                       "spec": {
                         "queryType": "instant",
                         "editorMode": "code",
-                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"webhook_received\"}[$__range]) and soma_client_checkout_events_total{event=~\"webhook_received\"} offset $__range) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"webhook_received\"}[$__range]) unless soma_client_checkout_events_total{event=~\"webhook_received\"} offset $__range) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
+                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"webhook_received\"}[$__range]) and last_over_time(soma_client_checkout_events_total{event=~\"webhook_received\"}[1h] offset $__range)) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"webhook_received\"}[$__range]) unless last_over_time(soma_client_checkout_events_total{event=~\"webhook_received\"}[1h] offset $__range)) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -610,7 +610,7 @@
                       "spec": {
                         "queryType": "instant",
                         "editorMode": "code",
-                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"webhook_paid\"}[$__range]) and soma_client_checkout_events_total{event=~\"webhook_paid\"} offset $__range) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"webhook_paid\"}[$__range]) unless soma_client_checkout_events_total{event=~\"webhook_paid\"} offset $__range) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
+                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"webhook_paid\"}[$__range]) and last_over_time(soma_client_checkout_events_total{event=~\"webhook_paid\"}[1h] offset $__range)) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"webhook_paid\"}[$__range]) unless last_over_time(soma_client_checkout_events_total{event=~\"webhook_paid\"}[1h] offset $__range)) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -690,7 +690,7 @@
                       "spec": {
                         "queryType": "instant",
                         "editorMode": "code",
-                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"webhook_unmatched\"}[$__range]) and soma_client_checkout_events_total{event=~\"webhook_unmatched\"} offset $__range) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"webhook_unmatched\"}[$__range]) unless soma_client_checkout_events_total{event=~\"webhook_unmatched\"} offset $__range) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
+                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"webhook_unmatched\"}[$__range]) and last_over_time(soma_client_checkout_events_total{event=~\"webhook_unmatched\"}[1h] offset $__range)) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"webhook_unmatched\"}[$__range]) unless last_over_time(soma_client_checkout_events_total{event=~\"webhook_unmatched\"}[1h] offset $__range)) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -778,7 +778,7 @@
                       "spec": {
                         "queryType": "instant",
                         "editorMode": "code",
-                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"team_emailed\"}[$__range]) and soma_client_checkout_events_total{event=~\"team_emailed\"} offset $__range) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"team_emailed\"}[$__range]) unless soma_client_checkout_events_total{event=~\"team_emailed\"} offset $__range) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
+                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"team_emailed\"}[$__range]) and last_over_time(soma_client_checkout_events_total{event=~\"team_emailed\"}[1h] offset $__range)) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"team_emailed\"}[$__range]) unless last_over_time(soma_client_checkout_events_total{event=~\"team_emailed\"}[1h] offset $__range)) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -858,7 +858,7 @@
                       "spec": {
                         "queryType": "instant",
                         "editorMode": "code",
-                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"canary_ok\"}[$__range]) and soma_client_checkout_events_total{event=~\"canary_ok\"} offset $__range) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"canary_ok\"}[$__range]) unless soma_client_checkout_events_total{event=~\"canary_ok\"} offset $__range) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
+                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"canary_ok\"}[$__range]) and last_over_time(soma_client_checkout_events_total{event=~\"canary_ok\"}[1h] offset $__range)) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"canary_ok\"}[$__range]) unless last_over_time(soma_client_checkout_events_total{event=~\"canary_ok\"}[1h] offset $__range)) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
                         "instant": true,
                         "format": "table",
                         "range": false
@@ -938,7 +938,7 @@
                       "spec": {
                         "queryType": "instant",
                         "editorMode": "code",
-                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"canary_failed\"}[$__range]) and soma_client_checkout_events_total{event=~\"canary_failed\"} offset $__range) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"canary_failed\"}[$__range]) unless soma_client_checkout_events_total{event=~\"canary_failed\"} offset $__range) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
+                        "expr": "(((sum(increase(soma_client_checkout_events_total{event=~\"canary_failed\"}[$__range]) and last_over_time(soma_client_checkout_events_total{event=~\"canary_failed\"}[1h] offset $__range)) or vector(0)) + (sum(last_over_time(soma_client_checkout_events_total{event=~\"canary_failed\"}[$__range]) unless last_over_time(soma_client_checkout_events_total{event=~\"canary_failed\"}[1h] offset $__range)) or vector(0)))) and on() (count(last_over_time(soma_client_checkout_events_total[$__range])) > 0)",
                         "instant": true,
                         "format": "table",
                         "range": false
