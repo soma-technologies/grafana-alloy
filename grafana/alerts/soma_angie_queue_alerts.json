@@ -1,0 +1,242 @@
+[
+  {
+    "uid": "soma-angie-queue-backlog",
+    "title": "Angie queue backlog is excessive",
+    "ruleGroup": "angie-queue-health",
+    "folderUID": "fwtfg9",
+    "orgID": 1,
+    "condition": "C",
+    "data": [
+      {
+        "datasourceUid": "grafanacloud-prom",
+        "model": {
+          "editorMode": "code",
+          "expr": "(max(angie_runtime_queue_depth) > 20) and (max(angie_runtime_queue_oldest_wait_seconds) > 900)",
+          "instant": true,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "A"
+        },
+        "queryType": "",
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 900,
+          "to": 0
+        }
+      },
+      {
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  0
+                ],
+                "type": "gt"
+              }
+            }
+          ],
+          "expression": "A",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        },
+        "queryType": "",
+        "refId": "C",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        }
+      }
+    ],
+    "noDataState": "OK",
+    "execErrState": "Alerting",
+    "for": "10m",
+    "keep_firing_for": "5m",
+    "isPaused": false,
+    "annotations": {
+      "dashboard": "https://earnestpuma1431.grafana.net/d/soma-angie-queue-health",
+      "description": "This is persisted work on the office Mac, not a count of workers. Do not delete queue files. Inspect queue age, account eligibility and canonical backend session status before draining or retrying.",
+      "summary": "Angie has more than 20 queued jobs and the oldest has waited over 15 minutes"
+    },
+    "labels": {
+      "component": "queue",
+      "paging": "false",
+      "service": "angie-miller",
+      "severity": "warning",
+      "team": "soma"
+    },
+    "notification_settings": {
+      "receiver": "soma-engineering-all",
+      "group_by": [
+        "grafana_folder",
+        "alertname"
+      ],
+      "group_wait": "30s",
+      "group_interval": "5m",
+      "repeat_interval": "4h"
+    }
+  },
+  {
+    "uid": "soma-angie-queue-stalled",
+    "title": "Angie queue is not draining",
+    "ruleGroup": "angie-queue-health",
+    "folderUID": "fwtfg9",
+    "orgID": 1,
+    "condition": "C",
+    "data": [
+      {
+        "datasourceUid": "grafanacloud-prom",
+        "model": {
+          "editorMode": "code",
+          "expr": "max(angie_runtime_queue_depth) > 0 and ((sum(increase(angie_runtime_events_total{component=\"queue\",event=\"started\"}[15m])) or vector(0)) == 0)",
+          "instant": true,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "A"
+        },
+        "queryType": "",
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 900,
+          "to": 0
+        }
+      },
+      {
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  0
+                ],
+                "type": "gt"
+              }
+            }
+          ],
+          "expression": "A",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        },
+        "queryType": "",
+        "refId": "C",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        }
+      }
+    ],
+    "noDataState": "OK",
+    "execErrState": "Alerting",
+    "for": "5m",
+    "keep_firing_for": "5m",
+    "isPaused": false,
+    "annotations": {
+      "dashboard": "https://earnestpuma1431.grafana.net/d/soma-angie-queue-health",
+      "description": "Likely causes include an ineligible oldest account-pinned item, exhausted account capacity, or a failed drain loop. Check session_queue_drain_deferred in the Mac application log and reconcile the oldest local session with angie_mac_sessions before changing state.",
+      "summary": "Angie has queued work but has started no queued job for 15 minutes"
+    },
+    "labels": {
+      "component": "queue",
+      "paging": "true",
+      "service": "angie-miller",
+      "severity": "critical",
+      "team": "soma"
+    },
+    "notification_settings": {
+      "receiver": "soma-engineering-all",
+      "group_by": [
+        "grafana_folder",
+        "alertname"
+      ],
+      "group_wait": "30s",
+      "group_interval": "5m",
+      "repeat_interval": "1h"
+    }
+  },
+  {
+    "uid": "soma-angie-queue-telemetry-missing",
+    "title": "Angie queue telemetry is missing",
+    "ruleGroup": "angie-queue-health",
+    "folderUID": "fwtfg9",
+    "orgID": 1,
+    "condition": "C",
+    "data": [
+      {
+        "datasourceUid": "grafanacloud-prom",
+        "model": {
+          "editorMode": "code",
+          "expr": "time() - max(angie_runtime_worker_last_heartbeat_unixtime)",
+          "instant": true,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "A"
+        },
+        "queryType": "",
+        "refId": "A",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        }
+      },
+      {
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  180
+                ],
+                "type": "gt"
+              }
+            }
+          ],
+          "expression": "A",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        },
+        "queryType": "",
+        "refId": "C",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        }
+      }
+    ],
+    "noDataState": "Alerting",
+    "execErrState": "Alerting",
+    "for": "5m",
+    "keep_firing_for": "5m",
+    "isPaused": false,
+    "annotations": {
+      "dashboard": "https://earnestpuma1431.grafana.net/d/soma-angie-queue-health",
+      "description": "Queue metrics cannot be trusted while this alert is active. Check the Angie server, local observability collector, Alloy OTLP pipeline and Grafana remote-write health.",
+      "summary": "Angie worker heartbeat is older than three minutes or absent"
+    },
+    "labels": {
+      "component": "observability",
+      "paging": "true",
+      "service": "angie-miller",
+      "severity": "critical",
+      "team": "soma"
+    },
+    "notification_settings": {
+      "receiver": "soma-engineering-all",
+      "group_by": [
+        "grafana_folder",
+        "alertname"
+      ],
+      "group_wait": "30s",
+      "group_interval": "5m",
+      "repeat_interval": "1h"
+    }
+  }
+]
