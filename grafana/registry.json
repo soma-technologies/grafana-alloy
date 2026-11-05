@@ -132,6 +132,21 @@
       ]
     },
     {
+      "uid": "soma-client-checkout",
+      "title": "SOMA Sign & Pay",
+      "status": "managed",
+      "generator": "gen_soma_client_checkout_dashboard.py",
+      "audience": "operators",
+      "note": "Sign & Pay for Ascend: one tile per client_checkout event, payer and canary outcomes, alert runbook. Counts are events, not checkouts.",
+      "folder": "SOMA Operations",
+      "tags": [
+        "ascend",
+        "operations",
+        "payments",
+        "soma"
+      ]
+    },
+    {
       "uid": "soma-supabase",
       "title": "Supabase \u2014 Soma (corrected)",
       "status": "keep",
